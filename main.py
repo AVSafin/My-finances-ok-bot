@@ -30,7 +30,7 @@ update_git()
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext,  PicklePersistence
 from handlers import main_handler, error_handler
-from keyboards.keyboards import main_keyboard, main_menu_keyboard
+from keyboards.keyboards import main_menu_keyboard
 from dotenv import load_dotenv
 load_dotenv()
 
