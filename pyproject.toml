@@ -4,4 +4,9 @@ version = "0.1.0"
 description = ""
 authors = ["AVSafin <avsafin@gmail.com>"]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "flask>=3.1.0",
+    "pip>=24.3.1",
+    "pytelegrambotapi>=4.26.0",
+    "requests>=2.32.3",
+]
