@@ -1,3 +1,19 @@
+import os
+import subprocess
+
+def update_git():
+    try:
+        # Добавить все изменения
+        subprocess.run(["git", "add", "."], check=True)
+        # Создать коммит
+        subprocess.run(["git", "commit", "-m", "Auto-update from Replit"], check=True)
+        # Отправить изменения в GitHub
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        print("Файлы успешно обновлены на GitHub.")
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка при обновлении файлов на GitHub: {e}")
+
+update_git()
 
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
