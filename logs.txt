@@ -3,3 +3,64 @@
 2025-01-22 10:54:18,629 - INFO - Бот запущен.
 2025-01-22 10:55:37,064 - INFO - Бот запущен.
 2025-01-22 10:57:53,351 - INFO - Бот запущен.
+2025-01-22 10:57:55,503 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getMe "HTTP/1.1 200 OK"
+2025-01-22 10:57:55,682 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/deleteWebhook "HTTP/1.1 200 OK"
+2025-01-22 10:57:55,684 - INFO - Scheduler started
+2025-01-22 10:57:55,684 - INFO - Application started
+2025-01-22 10:58:06,219 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:58:16,398 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:58:26,578 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:58:36,788 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:58:46,968 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:58:52,525 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:58:52,528 - ERROR - Ошибка в обработке обновления: Update(message=Message(channel_chat_created=False, chat=Chat(first_name='Andrey', id=371421224, last_name='S.', type=<ChatType.PRIVATE>, username='avsafin'), date=datetime.datetime(2025, 1, 22, 10, 58, 52, tzinfo=<UTC>), delete_chat_photo=False, entities=(MessageEntity(length=6, offset=0, type=<MessageEntityType.BOT_COMMAND>),), from_user=User(first_name='Andrey', id=371421224, is_bot=False, is_premium=True, language_code='ru', last_name='S.', username='avsafin'), group_chat_created=False, message_id=342, supergroup_chat_created=False, text='/start'), update_id=481817600)
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_application.py", line 1264, in process_update
+    await coroutine
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py", line 157, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/main.py", line 39, in start
+    reply_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/_replykeyboardmarkup.py", line 144, in __init__
+    raise ValueError(
+ValueError: The parameter `keyboard` should be a sequence of sequences of strings or KeyboardButtons
+2025-01-22 10:58:55,107 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:58:55,109 - ERROR - Ошибка в обработке обновления: Update(message=Message(channel_chat_created=False, chat=Chat(first_name='Andrey', id=371421224, last_name='S.', type=<ChatType.PRIVATE>, username='avsafin'), date=datetime.datetime(2025, 1, 22, 10, 58, 55, tzinfo=<UTC>), delete_chat_photo=False, from_user=User(first_name='Andrey', id=371421224, is_bot=False, is_premium=True, language_code='ru', last_name='S.', username='avsafin'), group_chat_created=False, message_id=343, supergroup_chat_created=False, text='Назад'), update_id=481817601)
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_application.py", line 1264, in process_update
+    await coroutine
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py", line 157, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/handlers/main_handler.py", line 48, in choose_action
+    reply_markup = main_keyboard
+                   ^^^^^^^^^^^^^
+NameError: name 'main_keyboard' is not defined
+2025-01-22 10:59:05,286 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:59:15,464 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:59:22,981 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:59:22,982 - ERROR - Ошибка в обработке обновления: Update(message=Message(channel_chat_created=False, chat=Chat(first_name='Andrey', id=371421224, last_name='S.', type=<ChatType.PRIVATE>, username='avsafin'), date=datetime.datetime(2025, 1, 22, 10, 59, 22, tzinfo=<UTC>), delete_chat_photo=False, entities=(MessageEntity(length=6, offset=0, type=<MessageEntityType.BOT_COMMAND>),), from_user=User(first_name='Andrey', id=371421224, is_bot=False, is_premium=True, language_code='ru', last_name='S.', username='avsafin'), group_chat_created=False, message_id=344, supergroup_chat_created=False, text='/start'), update_id=481817602)
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_application.py", line 1264, in process_update
+    await coroutine
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py", line 157, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/main.py", line 39, in start
+    reply_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/_replykeyboardmarkup.py", line 144, in __init__
+    raise ValueError(
+ValueError: The parameter `keyboard` should be a sequence of sequences of strings or KeyboardButtons
+2025-01-22 10:59:33,211 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:59:43,394 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 10:59:53,574 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:00:03,754 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:00:13,934 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:00:19,198 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:00:19,199 - INFO - Application is stopping. This might take a moment.
+2025-01-22 11:00:19,199 - INFO - Scheduler has been shut down
+2025-01-22 11:00:19,210 - INFO - Application.stop() complete
+2025-01-22 11:05:09,900 - INFO - Бот запущен.

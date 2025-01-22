@@ -38,21 +38,26 @@ load_dotenv()
 async def start(update: Update, context: CallbackContext) -> None:
     reply_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
     await update.message.reply_text("Добро пожаловать! Выберите один из разделов:", reply_markup=reply_markup)
+    logging.info("Сообщение с главным меню отправлено")
 
 # Entry point for the bot
 def main() -> None:
+    logging.info("Функция main запущена")
     #persistence
     persistence = PicklePersistence(filepath="bot_data")
     application = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).persistence(persistence).build()
+    logging.info("Application построена")
 
 
     # Add handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, main_handler.choose_action))
     application.add_error_handler(error_handler.handle_error)
+    logging.info("Обработчики добавлены")
 
     # Run the bot
     application.run_polling()
+    logging.info("Бот запущен в режиме polling")
 
 if __name__ == "__main__":
     main()
