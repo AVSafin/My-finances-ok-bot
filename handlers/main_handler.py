@@ -1,4 +1,4 @@
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update
 from telegram.ext import ContextTypes
 import logging
 from keyboards.keyboards import credits_menu_keyboard, main_keyboard, show_keyboard, loan_keyboard
