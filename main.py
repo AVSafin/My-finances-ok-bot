@@ -1,3 +1,15 @@
+import logging
+
+#настройка логирования
+logging.basicConfig(
+    filename='logs.txt',
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)"
+)
+
+#Пример записи лога
+logging.info("Бот запущен")
+
 import os
 import subprocess
 
@@ -14,18 +26,6 @@ def update_git():
         print(f"Ошибка при обновлении файлов на GitHub: {e}")
 
 update_git()
-
-import logging
-
-#настройка логирования
-logging.basicConfig(
-    filename="logs.txt",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)"
-)
-
-#Пример записи лога
-logging.info("Бот запущен")
 
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
