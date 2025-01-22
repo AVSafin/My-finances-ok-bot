@@ -165,3 +165,4 @@ ValueError: The parameter `keyboard` should be a sequence of sequences of string
 2025-01-22 11:20:49,854 - INFO - Бот запущен.
 2025-01-22 11:22:35,701 - INFO - Бот запущен.
 2025-01-22 11:23:14,719 - INFO - Бот запущен.
+2025-01-22 11:27:08,168 - INFO - Бот запущен.
