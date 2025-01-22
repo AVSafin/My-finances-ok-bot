@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 
-main_keyboard = InlineKeyboardMarkup(
+main_menu_keyboard = InlineKeyboardMarkup(
     [
         [InlineKeyboardButton("Кредиты", callback_data="credits")],
         [InlineKeyboardButton("Сбережения", callback_data="savings")],
