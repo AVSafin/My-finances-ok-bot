@@ -140,3 +140,4 @@ ValueError: The parameter `keyboard` should be a sequence of sequences of string
 2025-01-22 11:11:07,473 - INFO - Scheduler has been shut down
 2025-01-22 11:11:07,484 - INFO - Application.stop() complete
 2025-01-22 11:11:07,485 - INFO - Бот запущен в режиме polling
+2025-01-22 11:16:41,706 - INFO - Бот запущен.
