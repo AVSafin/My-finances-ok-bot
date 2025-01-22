@@ -1,12 +1,13 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
-from keyboards.keyboards import main_menu_keyboard, credits_menu_keyboard
+from keyboards.keyboards import main_menu_keyboard, credits_menu_keyboard, loan_keyboard, main_keyboard
 from data_storage import load_data
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from handlers import (
     LOAN_AMOUNT,
     SHOW_DATA,
-    DELETE_LOAN
+    DELETE_LOAN,
+    CHOOSING_ACTION
 )
 async def choose_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
    query = update.callback_query
