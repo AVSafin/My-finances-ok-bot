@@ -3,7 +3,7 @@ import os
 
 def update_logs():
   try:
-     #проверяем наличие изменений в logs.txt
+    #проверяем наличие изменений в logs.txt
     if os.path.exists("logs.txt"):
       subprocess.run(["git", "add", "logs.txt"], check=True)
       subprocess.run(["git", "commit", "-m", "Обновление логов"], check=True)
