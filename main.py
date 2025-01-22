@@ -1,4 +1,6 @@
 import logging
+import os
+import subprocess
 
 #настройка логирования
 logging.basicConfig(
@@ -10,8 +12,6 @@ logging.basicConfig(
 #Пример записи лога
 logging.info("Бот запущен.", extra={})
 
-import os
-import subprocess
 
 def update_git():
     try:
@@ -28,23 +28,28 @@ def update_git():
 update_git()
 
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-
-from handlers import main_handler
-from keyboards.keyboards import main_keyboard
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext,  PicklePersistence
+from handlers import main_handler, error_handler
+from keyboards.keyboards import main_keyboard, main_menu_keyboard
+from dotenv import load_dotenv
+load_dotenv()
 
 # Command to start the bot and show the main menu
 async def start(update: Update, context: CallbackContext) -> None:
-    reply_markup = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
     await update.message.reply_text("Добро пожаловать! Выберите один из разделов:", reply_markup=reply_markup)
 
 # Entry point for the bot
 def main() -> None:
-    application = Application.builder().token("YOUR_TELEGRAM_BOT_TOKEN").build()
+    #persistence
+    persistence = PicklePersistence(filepath="bot_data")
+    application = Application.builder().token(os.getenv("TELEGRAM_BOT_TOKEN")).persistence(persistence).build()
+
 
     # Add handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, main_handler.choose_action))
+    application.add_error_handler(error_handler.handle_error)
 
     # Run the bot
     application.run_polling()

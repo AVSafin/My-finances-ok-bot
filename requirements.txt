@@ -6,3 +6,4 @@ requests
 binpan
 python-dateutil
 aiogram==2.24
+python-dotenv
