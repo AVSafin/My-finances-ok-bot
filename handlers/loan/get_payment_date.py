@@ -5,7 +5,7 @@ from handlers import (
     CHOOSING_ACTION,
     BANK_NAME,
 )
-from .loan_handlers_data import top_banks
+from handlers.loan.loan_handlers_data import top_banks
 
 async def get_payment_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Получает дату первого платежа."""
