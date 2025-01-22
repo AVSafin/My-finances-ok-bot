@@ -141,3 +141,24 @@ ValueError: The parameter `keyboard` should be a sequence of sequences of string
 2025-01-22 11:11:07,484 - INFO - Application.stop() complete
 2025-01-22 11:11:07,485 - INFO - Бот запущен в режиме polling
 2025-01-22 11:16:41,706 - INFO - Бот запущен.
+2025-01-22 11:16:43,047 - INFO - Функция main запущена
+2025-01-22 11:16:43,062 - INFO - Application построена
+2025-01-22 11:16:43,062 - INFO - Обработчики добавлены
+2025-01-22 11:16:43,595 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getMe "HTTP/1.1 200 OK"
+2025-01-22 11:16:43,768 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/deleteWebhook "HTTP/1.1 200 OK"
+2025-01-22 11:16:43,769 - INFO - Scheduler started
+2025-01-22 11:16:43,770 - INFO - Application started
+2025-01-22 11:16:51,011 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:16:51,591 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/sendMessage "HTTP/1.1 200 OK"
+2025-01-22 11:16:51,592 - INFO - Сообщение с главным меню отправлено
+2025-01-22 11:16:54,248 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:16:54,505 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/sendMessage "HTTP/1.1 200 OK"
+2025-01-22 11:16:58,678 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:17:08,857 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:17:19,053 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:17:26,587 - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAFBUFzfNOygJUz3KgJJR9Vsr4v4xG88a8o/getUpdates "HTTP/1.1 200 OK"
+2025-01-22 11:17:26,587 - INFO - Application is stopping. This might take a moment.
+2025-01-22 11:17:26,588 - INFO - Scheduler has been shut down
+2025-01-22 11:17:26,598 - INFO - Application.stop() complete
+2025-01-22 11:17:26,599 - INFO - Бот запущен в режиме polling
+2025-01-22 11:20:08,217 - INFO - Бот запущен.

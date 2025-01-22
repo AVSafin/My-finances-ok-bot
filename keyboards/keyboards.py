@@ -2,24 +2,16 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMa
 
 main_keyboard = InlineKeyboardMarkup(
     [
-        [InlineKeyboardButton("Рассчитать кредит", callback_data="calculate_loan")],
-        [InlineKeyboardButton("Посмотреть данные", callback_data="show_loans"), InlineKeyboardButton("Удалить кредит", callback_data="delete_loans")],
-        [InlineKeyboardButton("Сбережения", callback_data="savings"), InlineKeyboardButton("Прогнозирование", callback_data="forecast")],
+        [InlineKeyboardButton("Кредиты", callback_data="credits")],
+        [InlineKeyboardButton("Сбережения", callback_data="savings")],
+        [InlineKeyboardButton("Прогнозирование", callback_data="forecast")],
     ]
-    )
+)
 
-main_menu_keyboard =  [
-        ["Кредиты"],
-        ["Сбережения"],
-        ["Прогнозирование"]
-    ]
-
-
-loan_keyboard = ReplyKeyboardMarkup(
+loan_keyboard = InlineKeyboardMarkup(
     [
-        ["Назад"],
-    ],
-    resize_keyboard=True
+        [InlineKeyboardButton("Назад", callback_data="back_to_main")],
+    ]
 )
 
 show_keyboard = InlineKeyboardMarkup(
@@ -44,12 +36,11 @@ def purpose_keyboard(purposes):
     keyboard.append([InlineKeyboardButton("Назад", callback_data="back_to_main")])
     return InlineKeyboardMarkup(keyboard)
 
-credits_menu_keyboard = ReplyKeyboardMarkup(
+credits_menu_keyboard = InlineKeyboardMarkup(
     [
-        ["Добавить кредит", "Удалить кредит"],
-        ["Просмотреть кредиты"],
-        ["Изменить дату платежа"],
-        ["Назад"]
-    ],
-    resize_keyboard=True
+        [InlineKeyboardButton("Добавить кредит", callback_data="calculate_loan"), InlineKeyboardButton("Удалить кредит", callback_data="delete_loans")],
+        [InlineKeyboardButton("Просмотреть кредиты", callback_data="show_loans")],
+        [InlineKeyboardButton("Изменить дату платежа", callback_data="change_date")],
+        [InlineKeyboardButton("Назад", callback_data="back_to_main")]
+    ]
 )
