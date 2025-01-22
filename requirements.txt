@@ -5,3 +5,4 @@ pytelegrambotapi
 requests
 binpan
 python-dateutil
+aiogram==2.24
