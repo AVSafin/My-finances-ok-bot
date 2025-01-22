@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
-from keyboards import main_menu_keyboard, credits_menu_keyboard
+from keyboards.keyboards import main_menu_keyboard, credits_menu_keyboard
 from data_storage import load_data
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from handlers import (
