@@ -4,11 +4,11 @@ import logging
 logging.basicConfig(
     filename='logs.txt',
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)"
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 #Пример записи лога
-logging.info("Бот запущен")
+logging.info("Бот запущен.", extra={})
 
 import os
 import subprocess
@@ -31,11 +31,11 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 from handlers import main_handler
-from keyboards import main_menu_keyboard
+from keyboards.keyboards import main_keyboard
 
 # Command to start the bot and show the main menu
 async def start(update: Update, context: CallbackContext) -> None:
-    reply_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
     await update.message.reply_text("Добро пожаловать! Выберите один из разделов:", reply_markup=reply_markup)
 
 # Entry point for the bot
@@ -44,7 +44,7 @@ def main() -> None:
 
     # Add handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, main_handler.handle_main_menu))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, main_handler.choose_action))
 
     # Run the bot
     application.run_polling()
