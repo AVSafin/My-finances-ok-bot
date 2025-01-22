@@ -2,7 +2,9 @@ from telegram import Update
 from telegram.ext import ContextTypes
 import logging
 from keyboards.keyboards import credits_menu_keyboard, main_keyboard, show_keyboard, loan_keyboard
-from handlers import calculate_loan_handler, show_data_handler, delete_loan_handler
+from handlers.calculate_loan_handler import loan_amount
+from handlers.show_data_handler import show_data
+from handlers.delete_loan_handler import delete_loan
 
 
 # Choose action depending on user message
@@ -19,11 +21,11 @@ async def choose_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     elif user_text == "Прогнозирование":
         await update.message.reply_text("Раздел в разработке")
     elif user_text == "Добавить кредит":
-        await calculate_loan_handler.loan_amount(update, context)
+        await loan_amount(update, context)
     elif user_text == "Просмотреть кредиты":
-       await show_data_handler.show_data(update, context)
+        await show_data(update, context)
     elif user_text == "Удалить кредит":
-       await delete_loan_handler.delete_loan(update, context)
+        await delete_loan(update, context)
     elif user_text == "Назад":
         await update.message.reply_text("Вы в главном меню", reply_markup=main_keyboard)
     else:
