@@ -1,48 +1,32 @@
 from datetime import datetime, timedelta
-import calendar
 
 def calculate_annuity_payment(loan_amount: float, interest_rate: float, loan_term: int) -> float:
-    """Рассчитывает ежемесячный аннуитетный платеж."""
+    """Calculate the monthly annuity payment."""
     monthly_interest_rate = interest_rate / 100 / 12
     payment = (
         loan_amount
         * monthly_interest_rate
         * (1 + monthly_interest_rate) ** loan_term
     ) / ((1 + monthly_interest_rate) ** loan_term - 1)
-    return payment
+    return round(payment, 2)
 
-def calculate_payments_schedule(loan_amount: float, annual_interest_rate: float, loan_term: int, start_day: int) -> list:
-    """Вычисляет график платежей."""
-    monthly_interest_rate = annual_interest_rate / 100 / 12
-    monthly_payment = calculate_annuity_payment(loan_amount, annual_interest_rate, loan_term)
-
+def calculate_payments_schedule(loan_amount, interest_rate, loan_term, start_date):
+    """Generate the payments schedule."""
+    monthly_payment = calculate_annuity_payment(loan_amount, interest_rate, loan_term)
     schedule = []
-    current_date = datetime.now().replace(day=start_day)
-    if current_date.day != start_day:
-        if current_date.day > start_day:
-            current_date = current_date.replace(month = current_date.month + 1)
-        current_date = current_date.replace(day = start_day)
-
     remaining_balance = loan_amount
-    for month in range(loan_term):
+    monthly_interest_rate = interest_rate / 100 / 12
+    current_date = start_date
+
+    for _ in range(loan_term):
         interest_payment = remaining_balance * monthly_interest_rate
         principal_payment = monthly_payment - interest_payment
-
-        if remaining_balance < principal_payment:
-            principal_payment = remaining_balance
-            monthly_payment = principal_payment + interest_payment
-
         remaining_balance -= principal_payment
-
-        if current_date.month == 12:
-            current_date = current_date.replace(year = current_date.year + 1, month = 1)
-        else:
-             current_date = current_date.replace(month = current_date.month + 1)
-
         schedule.append({
-            'date': current_date.strftime("%Y-%m-%d"),
-            'principal': principal_payment,
-            'interest': interest_payment,
-            'payment': monthly_payment
+            "date": current_date.strftime("%Y-%m-%d"),
+            "principal": round(principal_payment, 2),
+            "interest": round(interest_payment, 2),
+            "payment": round(monthly_payment, 2),
         })
+        current_date += timedelta(days=30)  # Roughly 1 month
     return schedule

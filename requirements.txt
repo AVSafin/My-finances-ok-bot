@@ -1,9 +1,2 @@
-python-telegram-bot==20.8
-flask
-telegram
+
 pytelegrambotapi
-requests
-binpan
-python-dateutil
-aiogram==2.24
-python-dotenv
