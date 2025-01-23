@@ -90,7 +90,7 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if previous_date and (p["date"] - previous_date).days > 35:
                     loan_schedule += "...\n"  # Визуальный разрыв между не соседними месяцами
                 loan_schedule += (
-                    f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:.2f} руб.\n"
+                    f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:, .2f} руб.\n"
                 )
                 previous_date = p["date"]
 
@@ -112,7 +112,7 @@ async def view_credits(update: Update, context: ContextTypes.DEFAULT_TYPE):
         loan_list = "\n\n".join(
             [f"Кредит {i+1}:\n"
              f"Название: {loan['name']}\n"
-             f"Сумма: {loan['amount']} руб.\n"
+             f"Сумма: {format(loan['amount'], ',')} руб.\n"
              f"Процентная ставка: {loan['rate']}%\n"
              f"Срок: {loan['term']} месяцев\n"
              f"Дата первого платежа: {loan['date']}"
@@ -215,7 +215,7 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📌 *Название:* {credit['name']}\n"
             f"🏦 *Банк:* {credit['bank']}\n"
             f"🔖 *Категория:* {credit['category']}\n"
-            f"💰 *Сумма:* {credit['amount']} руб.\n"
+            f"💰 *Сумма:* {format(credit['amount'], ',')} руб.\n"
             f"📈 *Ставка:* {credit['rate']}%\n"
             f"🕒 *Срок:* {credit['term']} месяцев\n"
             f"📆 *День платежа:* {credit['payment_day']}\n"
