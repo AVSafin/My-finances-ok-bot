@@ -106,7 +106,6 @@ def main():
     # Обработчики для кнопок в разделе "Кредиты"
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^Просмотреть кредиты$"), view_credits))
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^График платежей$"), payment_schedule))
-    application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^Удалить кредит$"), delete_credit))
 
     # ConversationHandler для добавления кредита
     add_credit_handler = ConversationHandler(

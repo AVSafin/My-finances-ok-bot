@@ -9,8 +9,14 @@ logging.basicConfig(level=logging.INFO)
 ASK_BANK, ASK_CATEGORY, ASK_AMOUNT, ASK_RATE, ASK_TERM, ASK_DAY, ASK_DATE = range(7)
 
 CREDITS_MENU = [["Добавить кредит", "Просмотреть кредиты"], ["График платежей", "Удалить кредит"], ["Назад"]]
-BANKS = [["Сбербанк", "Альфа-Банк"], ["Тинькофф", "ВТБ"], ["Газпромбанк", "Райффайзенбанк"], ["Назад"]]
+BANKS = [["🟢 Сбербанк", "🔴 Альфа-Банк"], ["🟡 Тинькофф", "🔵 ВТБ"], ["🔵 Газпромбанк", "🟡 Райффайзенбанк"], ["Назад"]]
 CATEGORIES = [["Ипотека", "Автокредит"], ["Кредит наличными", "Кредитная карта"], ["Назад"]]
+
+# Функция для расчета ежемесячного платежа
+def calculate_monthly_payment(loan_amount, interest_rate, loan_term):
+    monthly_interest_rate = interest_rate / 100 / 12
+    monthly_payment = (loan_amount * monthly_interest_rate) / (1 - (1 + monthly_interest_rate) ** -loan_term)
+    return monthly_payment
 
 async def delete_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Удаляет выбранный кредит."""
@@ -22,7 +28,6 @@ async def delete_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Формируем список кредитов с индексами
     loan_list = "\n".join([f"{i + 1}. {loan['name']}" for i, loan in enumerate(loans)])
     await update.message.reply_text(f"Выберите номер кредита для удаления:\n\n{loan_list}")
-    context.user_data["awaiting_deletion"] = True
     return 1  # Состояние для выбора кредита
 
 async def confirm_delete_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -34,7 +39,7 @@ async def confirm_delete_credit(update: Update, context: ContextTypes.DEFAULT_TY
             raise ValueError
         deleted_loan = loans.pop(credit_index)
         context.user_data["loans"] = loans
-        await update.message.reply_text(f"Кредит '{deleted_loan['name']}' успешно удалён.")
+        await update.message.reply_text(f"Кредит {deleted_loan['name']} успешно удалён.")
     except (ValueError, IndexError):
         await update.message.reply_text("Некорректный номер. Пожалуйста, введите корректный номер кредита.")
         return 1  # Остаёмся в состоянии удаления
@@ -102,6 +107,7 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Отправляем результат
     result = "\n\n".join(schedules)
     await update.message.reply_text(f"Ваш график платежей:\n\n{result}")
+    return ConversationHandler.END
 
 async def view_credits(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отображает список кредитов."""
@@ -111,14 +117,19 @@ async def view_credits(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         loan_list = "\n\n".join(
             [f"Кредит {i+1}:\n"
-             f"Название: {loan['name']}\n"
-             f"Сумма: {format(loan['amount'], ',')} руб.\n"
-             f"Процентная ставка: {loan['rate']}%\n"
-             f"Срок: {loan['term']} месяцев\n"
-             f"Дата первого платежа: {loan['date']}"
+             f"{loan['name']}\n"
+             f"💰 *Сумма:* {format(loan['amount'], ',')} руб.\n"
+             f"📈 *Ставка:* {loan['rate']}%\n"
+             f"🕒 *Срок:* {loan['term']} месяцев\n"
+             f"📅 *Ежемесячный платёж:* {format(calculate_monthly_payment(loan['amount'], loan['rate'], loan['term']), ',.2f')} руб.\n"
+             f"📆 *День платежа:* {loan['payment_day']}\n"
+             f"⏳ *Дата первого платежа:* {loan['date']}"
              for i, loan in enumerate(loans)]
         )
-        await update.message.reply_text(f"Ваши кредиты:\n\n{loan_list}")
+        await update.message.reply_text(
+            f"Ваши кредиты:\n\n{loan_list}",
+            parse_mode="Markdown"  # parse_mode здесь
+        )
         
 async def start_add_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Начало процесса добавления кредита."""
@@ -193,8 +204,12 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["date"] = payment_date
 
         # Составляем название кредита
-        credit_name = f"{context.user_data['bank']} | {context.user_data['payment_day']} число | {context.user_data['amount']} руб."
+        credit_name = f"{context.user_data['category']} | {context.user_data['bank']} | {context.user_data['payment_day']} число | {context.user_data['amount']:,} руб."
 
+        # Вычисляем ежемесячный платеж
+        monthly_payment = calculate_monthly_payment(context.user_data["amount"], context.user_data["rate"], context.user_data["term"])
+
+        
         # Сохраняем данные кредита
         credit = {
             "name": credit_name,
@@ -214,10 +229,10 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Кредит успешно добавлен!\n\n"
             f"📌 *Название:* {credit['name']}\n"
             f"🏦 *Банк:* {credit['bank']}\n"
-            f"🔖 *Категория:* {credit['category']}\n"
             f"💰 *Сумма:* {format(credit['amount'], ',')} руб.\n"
             f"📈 *Ставка:* {credit['rate']}%\n"
             f"🕒 *Срок:* {credit['term']} месяцев\n"
+            f"📅 *Ежемесячный платеж:* {format(monthly_payment, ',.2f')} руб.\n"
             f"📆 *День платежа:* {credit['payment_day']}\n"
             f"⏳ *Дата первого платежа:* {credit['date']}",
             parse_mode="Markdown",
