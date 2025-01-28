@@ -2,7 +2,6 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 import datetime  # Импортируем datetime для проверки формата даты
 import logging
-
 logging.basicConfig(level=logging.INFO)
 
 # Этапы диалога
@@ -95,8 +94,7 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if previous_date and (p["date"] - previous_date).days > 35:
                     loan_schedule += "...\n"  # Визуальный разрыв между не соседними месяцами
                 loan_schedule += (
-                    f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:, .2f} руб.\n"
-                )
+                f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:,.2f} руб.\n"                )
                 previous_date = p["date"]
 
             schedules.append(loan_schedule)
