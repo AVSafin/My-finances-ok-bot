@@ -39,10 +39,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Главные клавиатуры
-MAIN_MENU = [["Кредиты"], ["Сбережения"], ["Прогнозирование"]]
-CREDITS_MENU = [["Добавить кредит", "Просмотреть кредиты"], ["График платежей", "Удалить кредит"], ["Назад"]]
+MAIN_MENU = [["Сбережения"], ["Кредиты"], ["Прогнозирование"]]
+CREDITS_MENU = [["Просмотреть кредиты", "График платежей"], ["Добавить кредит", "Удалить кредит"], ["Изменение кредита"], ["Назад"]]
 SAVINGS_MENU = [["Назад"]]
-FORECAST_MENU = [["Назад"]]
+FORECAST_MENU = [["Рассчитать остаток на день"], ["Назад"]]
+CREDIT_MODIFICATION_MENU = [["Досрочное погашение"], ["Изменение даты платежа"], ["Назад"]]
+CREDIT_REPAYMENT_MENU = [["Уменьшение срока"], ["Уменьшение платежа"], ["Назад"]]
 
 def get_keyboard(buttons):
     """Утилита для создания клавиатуры."""
@@ -70,7 +72,7 @@ async def handle_menu_selection(update: Update, context: ContextTypes.DEFAULT_TY
         context.user_data["current_section"] = "savings"
     elif text == "Прогнозирование":
         keyboard = get_keyboard(FORECAST_MENU)
-        await update.message.reply_text("Вы в разделе 'Прогнозирование'.", reply_markup=keyboard)
+        await update.message.reply_text("Вы в разделе 'Прогнозирование'. Выберите действие:", reply_markup=keyboard)
         context.user_data["current_section"] = "forecast"
 
 # Обработка кнопки "Назад"
@@ -107,6 +109,7 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^Просмотреть кредиты$"), view_credits))
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^График платежей$"), payment_schedule))
 
+    
     # ConversationHandler для добавления кредита
     add_credit_handler = ConversationHandler(
         entry_points=[MessageHandler(filters.TEXT & filters.Regex("^Добавить кредит$"), start_add_credit)],
