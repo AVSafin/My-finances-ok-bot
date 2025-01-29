@@ -1,5 +1,6 @@
 import os
 import logging
+#from datetime import date
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -29,14 +30,23 @@ from handlers.credits.actions import (
     payment_schedule,
     delete_credit,
     confirm_delete_credit,
+    calculate_daily_balance_start,
+    ask_balance,
+    ask_salary_day,
+    cancel,
+    daily_balance_handler,
+    ASK_BALANCE,
+    ASK_SALARY_DAY,
+    daily_balance_handler,
 )
+
 
 # Настройка логирования
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    level=logging.INFO,
+    filename="bot.log"
 )
-logger = logging.getLogger(__name__)
 
 # Главные клавиатуры
 MAIN_MENU = [["Сбережения"], ["Кредиты"], ["Прогнозирование"]]
@@ -105,6 +115,20 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^Прогнозирование$"), handle_menu_selection))
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^Назад$"), handle_back_button))
 
+    conv_handler = ConversationHandler(
+        entry_points=[
+            MessageHandler(
+                filters.Regex("^Рассчитать остаток на день$"), calculate_daily_balance_start
+            ),
+        ],
+        states={
+            ASK_BALANCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_balance)],
+            ASK_SALARY_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_salary_day)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+    application.add_handler(conv_handler)
+    
     # Обработчики для кнопок в разделе "Кредиты"
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^Просмотреть кредиты$"), view_credits))
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^График платежей$"), payment_schedule))
