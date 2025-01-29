@@ -94,11 +94,19 @@ async def handle_back_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
         context.user_data["current_section"] = None
 
 # Обработчик ошибок
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Логирует ошибки и отправляет сообщение разработчику."""
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a telegram message to notify the developer."""
     logger.error(msg="Исключение при обработке обновления:", exc_info=context.error)
-    # Отправка сообщения разработчику или в лог
-    # await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=f"Произошла ошибка: {context.error}")
+    if update:
+        try:
+            await update.message.reply_text(
+                "Произошла непредвиденная ошибка при обработке вашего сообщения. Пожалуйста, попробуйте позже."
+            )
+        except TelegramError as e:
+            logger.error(f"Не удалось отправить сообщение об ошибке пользователю: {e}")
+
+
 
 def main():
     """Запускает бота."""
