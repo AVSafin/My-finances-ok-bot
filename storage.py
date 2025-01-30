@@ -30,7 +30,7 @@ class Storage:
                     "rate": 7.9,
                     "term": 240,
                     "payment_day": 15,
-                    "date": str(datetime.date.today())
+                    "date": "2024-03-15"
                 },
                 {
                     "name": "Автокредит | ВТБ | 10 число | 1,500,000 руб.",
@@ -40,7 +40,7 @@ class Storage:
                     "rate": 8.5,
                     "term": 60,
                     "payment_day": 10,
-                    "date": str(datetime.date.today())
+                    "date": "2023-10-10"
                 }
             ]
         }
