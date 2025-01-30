@@ -1,0 +1,37 @@
+200 OK"
+2025-01-30 15:43:00,300 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:43:00,521 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/sendMessage "HTTP/1.1 200 OK"
+2025-01-30 15:43:01,255 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:43:01,469 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/sendMessage "HTTP/1.1 200 OK"
+2025-01-30 15:43:10,176 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:43:10,788 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/sendMessage "HTTP/1.1 200 OK"
+2025-01-30 15:43:20,395 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:43:30,417 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:43:31,023 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/sendMessage "HTTP/1.1 200 OK"
+2025-01-30 15:43:31,024 - telegram.ext.Application - ERROR - An error was raised and an uncaught error was raised while handling the error with an error_handler.
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_application.py", line 1325, in process_update
+    await coroutine
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py", line 158, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/handlers/credits/actions.py", line 186, in payment_schedule
+    next_month = payment_date.month + 1 if payment_date.month < 12 else 1
+                                           ^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'month'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_application.py", line 1905, in process_error
+    await callback(update, context)
+  File "/home/runner/workspace/root/bot.py", line 85, in error_handler
+    logger.error(msg="Исключение при обработке обновления:", exc_info=context.error)
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-01-30 15:43:40,606 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:43:50,793 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:44:00,979 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:44:05,015 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-30 15:44:05,016 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-01-30 15:44:05,016 - telegram.ext.Application - INFO - Application.stop() complete
