@@ -42,7 +42,7 @@ from constants import MAIN_MENU, CREDITS_MENU, SAVINGS_MENU, FORECAST_MENU
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
-    filename="bot.log"t.log"   # Запись логов в файл
+    filename="bot.log"   # Запись логов в файл
 )
 
 def get_keyboard(buttons):
