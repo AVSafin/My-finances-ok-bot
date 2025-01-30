@@ -89,7 +89,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
                 "Произошла непредвиденная ошибка при обработке вашего сообщения. Пожалуйста, попробуйте позже."
             )
         except Exception as e:
-            logger.error(f"Не удалось отправить сообщение об ошибке пользователю: {e}")
+            logging.error(f"Не удалось отправить сообщение об ошибке пользователю: {e}")
 
 def main():
     """Запускает бота."""
@@ -108,7 +108,7 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & filters.Regex("^График платежей$"), payment_schedule))
 
     application.add_handler(daily_balance_handler())  # Добавляем обработчик для расчета остатка
-    
+
     # ConversationHandler для добавления кредита
     add_credit_handler = ConversationHandler(
         entry_points=[MessageHandler(filters.TEXT & filters.Regex("^Добавить кредит$"), start_add_credit)],
