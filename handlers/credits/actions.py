@@ -58,6 +58,113 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     for loan in loans:
         try:
+            # Расчет ежемесячного платежа
+            monthly_rate = loan['rate'] / 100 / 12
+            monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
+            
+            # Преобразование даты из строки в объект date, если нужно
+            if isinstance(loan['date'], str):
+                payment_date = datetime.datetime.strptime(loan['date'], '%Y-%m-%d').date()
+            else:
+                payment_date = loan['date']
+
+            # Подсчет оставшихся платежей
+            passed_months = 0
+            temp_date = payment_date
+            while temp_date <= current_date:
+                passed_months += 1
+                next_month = temp_date.month % 12 + 1
+                next_year = temp_date.year + (temp_date.month == 12)
+                temp_date = temp_date.replace(year=next_year, month=next_month)
+
+            remaining_payments = loan['term'] - passed_months
+            if remaining_payments < 0:
+                remaining_payments = 0
+
+            # Расчет остатков
+            total_payment = monthly_payment * loan['term']
+            total_interest = total_payment - loan['amount']
+            
+            remaining_total = monthly_payment * remaining_payments
+            remaining_principal = loan['amount'] * (remaining_payments / loan['term'])
+            remaining_interest = remaining_total - remaining_principal
+
+            # Формирование графика платежей
+            payments = []
+            current_payment_date = payment_date
+            for i in range(loan['term']):
+                payments.append({
+                    "date": current_payment_date,
+                    "payment": monthly_payment,
+                    "number": i + 1
+                })
+                next_month = current_payment_date.month % 12 + 1
+                next_year = current_payment_date.year + (current_payment_date.month == 12)
+                current_payment_date = current_payment_date.replace(year=next_year, month=next_month)
+
+            # Формируем текст для вывода
+            loan_schedule = (
+                f"Кредит: {loan['name']} ({loan['bank']} | {loan['category']}):\n"
+                f"💰 Остаток основного долга: {remaining_principal:,.2f} руб.\n"
+                f"📈 Остаток процентов: {remaining_interest:,.2f} руб.\n\n"
+            )
+            
+            # Выбираем платежи для отображения
+            selected_payments = []
+            selected_payments.extend(payments[:3])  # Первые 3 платежа
+            
+            # Добавляем 2 платежа до текущего месяца
+            past_payments = [p for p in payments if p["date"] < current_date][-2:]
+            if past_payments:
+                if selected_payments[-1]["number"] < past_payments[0]["number"] - 1:
+                    loan_schedule += "...\n"
+                selected_payments.extend(past_payments)
+            
+            # Добавляем текущий и следующий платежи
+            current_and_next = ([p for p in payments if p["date"] == current_date] +
+                              [p for p in payments if p["date"] > current_date])[:2]
+            if current_and_next:
+                if selected_payments[-1]["number"] < current_and_next[0]["number"] - 1:
+                    loan_schedule += "...\n"
+                selected_payments.extend(current_and_next)
+            
+            # Добавляем последние 3 платежа
+            last_payments = payments[-3:]
+            if last_payments:
+                if selected_payments[-1]["number"] < last_payments[0]["number"] - 1:
+                    loan_schedule += "...\n"
+                selected_payments.extend(last_payments)
+
+            # Удаляем дубликаты и сортируем по номеру
+            seen = set()
+            selected_payments = [p for p in selected_payments 
+                               if p["number"] not in seen and not seen.add(p["number"])]
+            selected_payments.sort(key=lambda x: x["number"])
+
+            # Формируем вывод платежей
+            previous_number = 0
+            for p in selected_payments:
+                if p["number"] > previous_number + 1:
+                    loan_schedule += "...\n"
+                loan_schedule += (
+                    f"№{p['number']} | 📆 {p['date']} | 💳 {p['payment']:,.2f} руб.\n"
+                )
+                previous_number = p["number"]
+
+            schedules.append(loan_schedule)
+
+        except Exception as e:
+            schedules.append(f"Ошибка в данных кредита {loan.get('name', 'Без имени')}: {str(e)}")
+
+    # Отправляем результат
+    result = "\n\n".join(schedules)
+    await update.message.reply_text(f"Ваш график платежей:\n\n{result}")
+
+    current_date = datetime.date.today()
+    schedules = []
+
+    for loan in loans:
+        try:
             # Проверка данных кредита
             if not all(key in loan for key in ['rate', 'amount', 'term', 'date']):
                 raise KeyError(f"Отсутствуют данные для кредита {loan['name']}")
