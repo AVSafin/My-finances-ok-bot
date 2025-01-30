@@ -1,4 +1,7 @@
 from telegram import Update, ReplyKeyboardMarkup
+from storage import Storage
+
+storage = Storage()
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters
 import datetime
 import logging
@@ -106,7 +109,8 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def view_credits(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отображает список кредитов."""
-    loans = context.user_data.get("loans", [])
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    loans = user_data.get("loans", [])
     if not loans:
         await update.message.reply_text("У вас пока нет добавленных кредитов.")
     else:
