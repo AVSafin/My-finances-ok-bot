@@ -1,13 +1,8 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters
 import datetime
-from datetime import date
 import logging
-from telegraph import Telegraph
-from constants import MAIN_MENU, CREDITS_MENU, SAVINGS_MENU, FORECAST_MENU, CREDIT_MODIFICATION_MENU, CREDIT_REPAYMENT_MENU, BANKS, CATEGORIES
-
-# Импортируем прогнозные функции
-from handlers.forecast.actions import calculate_daily_balance_start, ask_balance, ask_salary_day  # Обновите импорт
+from constants import BANKS, CATEGORIES
 
 # Этапы диалога для кредитов
 ASK_BANK, ASK_CATEGORY, ASK_AMOUNT, ASK_RATE, ASK_TERM, ASK_DAY, ASK_DATE = range(7)
@@ -95,7 +90,8 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if previous_date and (p["date"] - previous_date).days > 35:
                     loan_schedule += "...\n"  # Визуальный разрыв между не соседними месяцами
                 loan_schedule += (
-                f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:,.2f} руб.\n"                )
+                f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:,.2f} руб.\n"
+                )
                 previous_date = p["date"]
 
             schedules.append(loan_schedule)
@@ -129,7 +125,7 @@ async def view_credits(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Ваши кредиты:\n\n{loan_list}",
             parse_mode="Markdown"  # parse_mode здесь
         )
-        
+
 async def start_add_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Начало процесса добавления кредита."""
     keyboard = ReplyKeyboardMarkup(BANKS, resize_keyboard=True)
@@ -208,7 +204,6 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Вычисляем ежемесячный платеж
         monthly_payment = calculate_monthly_payment(context.user_data["amount"], context.user_data["rate"], context.user_data["term"])
 
-        
         # Сохраняем данные кредита
         credit = {
             "name": credit_name,
@@ -235,10 +230,9 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📆 *День платежа:* {credit['payment_day']}\n"
             f"⏳ *Дата первого платежа:* {credit['date']}",
             parse_mode="Markdown",
-            reply_markup=ReplyKeyboardMarkup(CREDITS_MENU, resize_keyboard=True),
+            reply_markup=ReplyKeyboardMarkup(CATEGORIES, resize_keyboard=True),
         )
         return ConversationHandler.END
     except ValueError:
         await update.message.reply_text("Некорректный формат даты. Пожалуйста, введите дату в формате ГГГГ-ММ-ДД:")
         return ASK_DATE
-

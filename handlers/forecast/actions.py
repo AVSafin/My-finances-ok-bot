@@ -27,7 +27,7 @@ async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         salary_day = int(update.message.text)
         if salary_day < 1 or salary_day > 31:
-           raise ValueError
+            raise ValueError
         context.user_data["salary_day"] = salary_day
 
         balance = context.user_data["balance"]
@@ -36,6 +36,7 @@ async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
         current_month = current_date.month
         current_year = current_date.year
 
+        # Определение даты следующего начисления зарплаты
         if salary_day > current_day:
             next_salary_date = date(current_year, current_month, salary_day)
         else:
@@ -48,36 +49,33 @@ async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Вы ввели некорректную дату зарплаты. Попробуйте еще раз")
             return ASK_SALARY_DAY
 
+        # Расчет среднего остатка на день
         daily_balance = balance / days_until_salary
         await update.message.reply_text(
             f"Ваш средний остаток на день до зарплаты: {format(daily_balance, ',.2f')} руб.\n"
-             f"До зарплаты {days_until_salary} дней."
+            f"До зарплаты {days_until_salary} дней."
         )
         return ConversationHandler.END
 
     except ValueError:
-      await update.message.reply_text("Некорректный день. Введите число от 1 до 31:")
-      return ASK_SALARY_DAY
-
-# Этапы диалога для расчета остатка
-ASK_BALANCE, ASK_SALARY_DAY = range(2)
+        await update.message.reply_text("Некорректный день. Введите число от 1 до 31:")
+        return ASK_SALARY_DAY
 
 def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Cancels and ends the conversation."""
+    """Отменяет и завершает разговор."""
     update.message.reply_text("Действие отменено.")
     return ConversationHandler.END
-
 
 def daily_balance_handler():
     """Создает ConversationHandler для расчета остатка денег на день."""
     conv_handler = ConversationHandler(
         entry_points=[
-            MessageHandler(filters.Regex("^Расчет остатка$"), calculate_daily_balance_start),
+            MessageHandler(filters.Regex("^Рассчитать остаток на день$"), calculate_daily_balance_start),
         ],
         states={
             ASK_BALANCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_balance)],
             ASK_SALARY_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_salary_day)],
         },
-        fallbacks=[CommandHandler("cancel", cancel)]
+        fallbacks=[MessageHandler(filters.Regex("^Отмена$"), cancel)]  # Фallback для отмены
     )
     return conv_handler
