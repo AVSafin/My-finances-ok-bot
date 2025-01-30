@@ -30,6 +30,9 @@ from handlers.credits.actions import (
     payment_schedule,
     delete_credit,
     confirm_delete_credit,
+)
+
+from handlers.forecast.actions import (
     calculate_daily_balance_start,
     ask_balance,
     ask_salary_day,
@@ -40,6 +43,7 @@ from handlers.credits.actions import (
     daily_balance_handler,
 )
 
+from constants import MAIN_MENU, CREDITS_MENU, SAVINGS_MENU, FORECAST_MENU, CREDIT_MODIFICATION_MENU, CREDIT_REPAYMENT_MENU
 
 # Настройка логирования
 logging.basicConfig(
@@ -47,14 +51,6 @@ logging.basicConfig(
     level=logging.INFO,
     filename="bot.log"
 )
-
-# Главные клавиатуры
-MAIN_MENU = [["Сбережения"], ["Кредиты"], ["Прогнозирование"]]
-CREDITS_MENU = [["Просмотреть кредиты", "График платежей"], ["Добавить кредит", "Удалить кредит"], ["Изменение кредита"], ["Назад"]]
-SAVINGS_MENU = [["Назад"]]
-FORECAST_MENU = [["Рассчитать остаток на день"], ["Назад"]]
-CREDIT_MODIFICATION_MENU = [["Досрочное погашение"], ["Изменение даты платежа"], ["Назад"]]
-CREDIT_REPAYMENT_MENU = [["Уменьшение срока"], ["Уменьшение платежа"], ["Назад"]]
 
 def get_keyboard(buttons):
     """Утилита для создания клавиатуры."""
