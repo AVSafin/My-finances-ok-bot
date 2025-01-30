@@ -45,7 +45,8 @@ async def confirm_delete_credit(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отображает график платежей по кредитам с выборкой платежей."""
-    loans = context.user_data.get("loans", [])
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    loans = user_data.get("loans", [])
     if not loans:
         await update.message.reply_text("У вас пока нет добавленных кредитов.")
         return
@@ -87,11 +88,24 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             # Формируем текст для вывода
-            loan_schedule = f"Кредит: {loan['name']} ({loan['bank']} | {loan['category']}):\n"
+            # Расчет остатка основного долга и процентов
+            total_payment = monthly_payment * loan['term']
+            total_interest = total_payment - loan['amount']
+            remaining_payments = loan['term'] - len([p for p in payments if p["date"] <= current_date])
+            remaining_total = monthly_payment * remaining_payments
+            remaining_principal = loan['amount'] * (remaining_payments / loan['term'])
+            remaining_interest = remaining_total - remaining_principal
+
+            loan_schedule = (
+                f"Кредит: {loan['name']} ({loan['bank']} | {loan['category']}):\n"
+                f"💰 Остаток основного долга: {remaining_principal:,.2f} руб.\n"
+                f"📈 Остаток процентов: {remaining_interest:,.2f} руб.\n\n"
+            )
+            
             previous_date = None
             for p in selected_payments:
                 if previous_date and (p["date"] - previous_date).days > 35:
-                    loan_schedule += "...\n"  # Визуальный разрыв между не соседними месяцами
+                    loan_schedule += "...\n"
                 loan_schedule += (
                 f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:,.2f} руб.\n"
                 )
@@ -232,7 +246,9 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🕒 *Срок:* {credit['term']} месяцев\n"
             f"📅 *Ежемесячный платеж:* {format(monthly_payment, ',.2f')} руб.\n"
             f"📆 *День платежа:* {credit['payment_day']}\n"
-            f"⏳ *Дата первого платежа:* {credit['date']}",
+            f"⏳ *Дата первого платежа:* {credit['date']}\n\n"
+            f"💵 *Остаток основного долга:* {format(credit['amount'] * ((credit['term'] - len([p for p in range(credit['term']) if datetime.datetime.strptime(credit['date'], '%Y-%m-%d').date().replace(day=credit['payment_day']) + datetime.timedelta(days=30*p) <= datetime.date.today()])) / credit['term']), ',.2f')} руб.\n"
+            f"💹 *Остаток процентов:* {format(monthly_payment * (credit['term'] - len([p for p in range(credit['term']) if datetime.datetime.strptime(credit['date'], '%Y-%m-%d').date().replace(day=credit['payment_day']) + datetime.timedelta(days=30*p) <= datetime.date.today()])) - (credit['amount'] * ((credit['term'] - len([p for p in range(credit['term']) if datetime.datetime.strptime(credit['date'], '%Y-%m-%d').date().replace(day=credit['payment_day']) + datetime.timedelta(days=30*p) <= datetime.date.today()])) / credit['term'])), ',.2f')} руб.",
             parse_mode="Markdown",
             reply_markup=ReplyKeyboardMarkup(CATEGORIES, resize_keyboard=True),
         )
