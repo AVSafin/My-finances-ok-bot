@@ -146,8 +146,14 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for p in selected_payments:
                 if p["number"] > previous_number + 1:
                     loan_schedule += "...\n"
+                # Расчет остатков для каждого платежа
+                payments_left = loan['term'] - p['number'] + 1
+                remaining_principal = loan['amount'] * (payments_left / loan['term'])
+                remaining_interest = (p['payment'] * payments_left) - remaining_principal
+                
                 loan_schedule += (
-                    f"№{p['number']} | 📆 {p['date']} | 💳 {p['payment']:,.2f} руб.\n"
+                    f"№{p['number']} | 📆 {p['date']} | 💳 {p['payment']:,.2f} руб. | "
+                    f"💵 Тело: {remaining_principal:,.2f} руб. | 💹 Проценты: {remaining_interest:,.2f} руб.\n"
                 )
                 previous_number = p["number"]
 
@@ -242,17 +248,31 @@ async def view_credits(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not loans:
         await update.message.reply_text("У вас пока нет добавленных кредитов.")
     else:
-        loan_list = "\n\n".join(
-            [f"Кредит {i+1}:\n"
-             f"{loan['name']}\n"
-             f"💰 *Сумма:* {format(loan['amount'], ',')} руб.\n"
-             f"📈 *Ставка:* {loan['rate']}%\n"
-             f"🕒 *Срок:* {loan['term']} месяцев\n"
-             f"📅 *Ежемесячный платёж:* {format(calculate_monthly_payment(loan['amount'], loan['rate'], loan['term']), ',.2f')} руб.\n"
-             f"📆 *День платежа:* {loan['payment_day']}\n"
-             f"⏳ *Дата первого платежа:* {loan['date']}"
-             for i, loan in enumerate(loans)]
-        )
+        current_date = datetime.date.today()
+        loan_list = []
+        for i, loan in enumerate(loans):
+            monthly_payment = calculate_monthly_payment(loan['amount'], loan['rate'], loan['term'])
+            payment_date = datetime.datetime.strptime(str(loan['date']), '%Y-%m-%d').date() if isinstance(loan['date'], str) else loan['date']
+            passed_months = sum(1 for m in range(loan['term']) if payment_date.replace(month=((payment_date.month-1+m)%12)+1, year=payment_date.year + (payment_date.month+m-1)//12) <= current_date)
+            remaining_payments = max(0, loan['term'] - passed_months)
+            remaining_total = monthly_payment * remaining_payments
+            remaining_principal = loan['amount'] * (remaining_payments / loan['term'])
+            remaining_interest = remaining_total - remaining_principal
+            
+            loan_info = (
+                f"Кредит {i+1}:\n"
+                f"{loan['name']}\n"
+                f"💰 *Сумма:* {format(loan['amount'], ',')} руб.\n"
+                f"📈 *Ставка:* {loan['rate']}%\n"
+                f"🕒 *Срок:* {loan['term']} месяцев\n"
+                f"📅 *Ежемесячный платёж:* {format(monthly_payment, ',.2f')} руб.\n"
+                f"📆 *День платежа:* {loan['payment_day']}\n"
+                f"⏳ *Дата первого платежа:* {loan['date']}\n"
+                f"💵 *Остаток основного долга:* {format(remaining_principal, ',.2f')} руб.\n"
+                f"💹 *Остаток процентов:* {format(remaining_interest, ',.2f')} руб."
+            )
+            loan_list.append(loan_info)
+        loan_list = "\n\n".join(loan_list)
         await update.message.reply_text(
             f"Ваши кредиты:\n\n{loan_list}",
             parse_mode="Markdown"  # parse_mode здесь
