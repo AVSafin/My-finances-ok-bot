@@ -93,6 +93,16 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 def main():
     """Запускает бота."""
+    import signal
+    import sys
+
+    def signal_handler(signum, frame):
+        print("Получен сигнал завершения, выполняется корректное завершение...")
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     token = os.getenv("BOT_TOKEN")  # Получаем токен из переменных окружения
     application = Application.builder().token(token).build()  # Создаем экземпляр приложения
 
