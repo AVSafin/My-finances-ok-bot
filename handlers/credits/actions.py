@@ -46,7 +46,7 @@ async def confirm_delete_credit(update: Update, context: ContextTypes.DEFAULT_TY
     return ConversationHandler.END
 
 async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Отображает график платежей по кредитам с выборкой платежей."""
+    """Отображает ближайшие платежи по кредитам, сгруппированные по датам."""
     user_data = storage.get_user_data(str(update.effective_user.id))
     loans = user_data.get("loans", [])
     if not loans:
@@ -54,7 +54,7 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     current_date = datetime.date.today()
-    schedules = []
+    upcoming_payments = {}  # Словарь для группировки платежей по датам
 
     for loan in loans:
         try:
@@ -198,40 +198,52 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 next_year = payment_date.year + 1 if next_month == 1 else payment_date.year
                 payment_date = payment_date.replace(year=next_year, month=next_month)
 
-            # Формируем выборку платежей
-            selected_payments = (
-                payments[:3] +  # Первые 3 платежа
-                [p for p in payments if p["date"] < current_date][-2:] +  # 2 платежа до текущего месяца
-                [p for p in payments if p["date"] == current_date][:1] +  # Текущий платёж
-                [p for p in payments if p["date"] > current_date][:1] +  # Следующий платёж
-                payments[-3:]  # Последние 3 платежа
+            # Находим следующий платеж
+            next_payments = [p for p in payments if p["date"] >= current_date]
+            if next_payments:
+                next_payment = next_payments[0]
+                remaining_payments = len(next_payments)
+                remaining_total = monthly_payment * remaining_payments
+                remaining_principal = loan['amount'] * (remaining_payments / loan['term'])
+                remaining_interest = remaining_total - remaining_principal
+
+                payment_info = {
+                    'name': loan['name'],
+                    'payment': monthly_payment,
+                    'remaining_payments': remaining_payments,
+                    'remaining_principal': remaining_principal,
+                    'remaining_interest': remaining_interest
+                }
+
+                # Группируем платежи по датам
+                if next_payment["date"] in upcoming_payments:
+                    upcoming_payments[next_payment["date"]].append(payment_info)
+                else:
+                    upcoming_payments[next_payment["date"]] = [payment_info]
+
+    # Формируем вывод сгруппированных платежей
+    result = "📅 Ближайшие платежи по кредитам:\n\n"
+    
+    # Сортируем даты
+    sorted_dates = sorted(upcoming_payments.keys())
+    for payment_date in sorted_dates[:3]:  # Показываем только 3 ближайшие даты
+        result += f"🗓 {payment_date.strftime('%d.%m.%Y')}:\n"
+        total_payment_for_date = 0
+        
+        for payment_info in upcoming_payments[payment_date]:
+            total_payment_for_date += payment_info['payment']
+            result += (
+                f"• {payment_info['name']}\n"
+                f"  💳 Платёж: {payment_info['payment']:,.2f} руб.\n"
+                f"  📊 Осталось платежей: {payment_info['remaining_payments']}\n"
+                f"  💰 Остаток долга: {payment_info['remaining_principal']:,.2f} руб.\n"
+                f"  💹 Остаток процентов: {payment_info['remaining_interest']:,.2f} руб.\n"
             )
+        
+        result += f"📌 Всего к оплате {payment_date.strftime('%d.%m')}: {total_payment_for_date:,.2f} руб.\n\n"
 
-            # Формируем текст для вывода
-            # Расчет остатка основного долга и процентов
-            total_payment = monthly_payment * loan['term']
-            total_interest = total_payment - loan['amount']
-            remaining_payments = loan['term'] - len([p for p in payments if p["date"] <= current_date])
-            remaining_total = monthly_payment * remaining_payments
-            remaining_principal = loan['amount'] * (remaining_payments / loan['term'])
-            remaining_interest = remaining_total - remaining_principal
-
-            loan_schedule = (
-                f"Кредит: {loan['name']} ({loan['bank']} | {loan['category']}):\n"
-                f"💰 Остаток основного долга: {remaining_principal:,.2f} руб.\n"
-                f"📈 Остаток процентов: {remaining_interest:,.2f} руб.\n\n"
-            )
-            
-            previous_date = None
-            for p in selected_payments:
-                if previous_date and (p["date"] - previous_date).days > 35:
-                    loan_schedule += "...\n"
-                loan_schedule += (
-                f"№{p['number']} | 📆 Дата: {p['date']} | 💳 Платёж: {p['payment']:,.2f} руб.\n"
-                )
-                previous_date = p["date"]
-
-            schedules.append(loan_schedule)
+    await update.message.reply_text(result)
+    return ConversationHandler.END
 
         except KeyError:
             schedules.append(f"Ошибка в данных кредита: {loan.get('name', 'Без имени')}.")
