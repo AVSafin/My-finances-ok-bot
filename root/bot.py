@@ -41,8 +41,8 @@ from constants import MAIN_MENU, CREDITS_MENU, SAVINGS_MENU, FORECAST_MENU
 # Настройка логирования
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,  # Сlevel задания инфо
-    filename="bot.log"   # Запись логов в файл
+    level=logging.INFO,
+    filename="bot.log"t.log"   # Запись логов в файл
 )
 
 def get_keyboard(buttons):
@@ -95,6 +95,8 @@ def main():
     """Запускает бота."""
     import signal
     import sys
+    
+    logging.info("Starting bot...")
 
     def signal_handler(signum, frame):
         print("Получен сигнал завершения, выполняется корректное завершение...")
