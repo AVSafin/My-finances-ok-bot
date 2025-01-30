@@ -82,7 +82,7 @@ async def handle_back_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Логирует ошибки и уведомляет пользователя о возникновении ошибки."""
-    logger.error(msg="Исключение при обработке обновления:", exc_info=context.error)
+    logging.error(msg="Исключение при обработке обновления:", exc_info=context.error)
     if update:
         try:
             await update.message.reply_text(

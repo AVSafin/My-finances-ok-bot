@@ -172,7 +172,12 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Рассчитываем ежемесячный платёж
             monthly_rate = loan['rate'] / 100 / 12
             monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
-            payment_date = loan['date']
+            
+            # Преобразуем дату если она строка
+            if isinstance(loan['date'], str):
+                payment_date = datetime.datetime.strptime(loan['date'], '%Y-%m-%d').date()
+            else:
+                payment_date = loan['date']
 
             # Генерация всех платежей
             payments = []
