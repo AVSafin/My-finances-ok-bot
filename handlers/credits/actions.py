@@ -18,7 +18,8 @@ def calculate_monthly_payment(loan_amount, interest_rate, loan_term):
 
 async def delete_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Удаляет выбранный кредит."""
-    loans = context.user_data.get("loans", [])
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    loans = user_data.get("loans", [])
     if not loans:
         await update.message.reply_text("У вас пока нет добавленных кредитов для удаления.")
         return ConversationHandler.END
@@ -32,7 +33,8 @@ async def confirm_delete_credit(update: Update, context: ContextTypes.DEFAULT_TY
     """Подтверждает удаление выбранного кредита."""
     try:
         credit_index = int(update.message.text) - 1
-        loans = context.user_data.get("loans", [])
+        user_data = storage.get_user_data(str(update.effective_user.id))
+        loans = user_data.get("loans", [])
         if credit_index < 0 or credit_index >= len(loans):
             raise ValueError
         deleted_loan = loans.pop(credit_index)
@@ -233,9 +235,12 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "payment_day": context.user_data["payment_day"],
             "date": context.user_data["date"],
         }
-        if "loans" not in context.user_data:
-            context.user_data["loans"] = []
-        context.user_data["loans"].append(credit)
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        if "loans" not in user_data:
+            user_data["loans"] = []
+        user_data["loans"].append(credit)
+        storage.save_user_data(user_id, user_data)
 
         await update.message.reply_text(
             "Кредит успешно добавлен!\n\n"
