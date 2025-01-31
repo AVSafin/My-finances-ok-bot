@@ -147,6 +147,10 @@ def main():
 
     # Обработчик для расчета остатка
     application.add_handler(daily_balance_handler())
+    application.add_handler(MessageHandler(
+        filters.TEXT & filters.Regex("^Просмотреть регулярные расходы$"),
+        view_regular_expenses
+    ))
 
     # Обработчик добавления регулярных расходов
     regular_expenses_handler = ConversationHandler(

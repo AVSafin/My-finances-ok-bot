@@ -37,16 +37,16 @@ async def add_expense_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
         day = int(update.message.text)
         if day < 1 or day > 31:
             raise ValueError
-        
+
         user_data = storage.get_user_data(str(update.effective_user.id))
         if 'regular_expenses' not in user_data:
             user_data['regular_expenses'] = []
-            
+
         expense = context.user_data['temp_expense']
         expense['day'] = day
         user_data['regular_expenses'].append(expense)
         storage.update_user_data(str(update.effective_user.id), user_data)
-        
+
         await update.message.reply_text(
             f"Регулярный расход добавлен:\n"
             f"📝 Название: {expense['name']}\n"
@@ -121,7 +121,7 @@ async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Расчет среднего остатка на день
         balance_after_expenses = balance - total_expenses
         daily_balance = balance_after_expenses / days_until_salary
-        
+
         result = (
             f"💰 Текущий баланс: {balance:,.2f} руб.\n"
             f"📊 Регулярные расходы до зарплаты:\n{expenses_text if expenses_text else '(нет регулярных расходов)'}\n"
@@ -129,7 +129,7 @@ async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📅 Средний остаток на день: {daily_balance:,.2f} руб.\n"
             f"⏳ До зарплаты: {days_until_salary} дней"
         )
-        
+
         await update.message.reply_text(result)
         return ConversationHandler.END
 
@@ -137,7 +137,27 @@ async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректный день. Введите число от 1 до 31:")
         return ASK_SALARY_DAY
 
-def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def view_regular_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отображает список регулярных расходов."""
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    regular_expenses = user_data.get('regular_expenses', [])
+
+    if not regular_expenses:
+        await update.message.reply_text("У вас пока нет добавленных регулярных расходов.")
+        return
+
+    result = "📋 Ваши регулярные расходы:\n\n"
+    total = 0
+    for expense in regular_expenses:
+        result += (f"📌 {expense['name']}\n"
+                  f"💰 Сумма: {expense['amount']:,.2f} руб.\n"
+                  f"📅 День: {expense['day']}\n\n")
+        total += expense['amount']
+
+    result += f"Общая сумма расходов: {total:,.2f} руб."
+    await update.message.reply_text(result)
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Отменяет и завершает разговор."""
     update.message.reply_text("Действие отменено.")
     return ConversationHandler.END
