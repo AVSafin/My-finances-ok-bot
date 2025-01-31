@@ -377,7 +377,7 @@ async def view_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(result)
 async def get_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Предоставляет сводную информацию по доходам и расходам."""
+    """Предоставляет сводную информацию по доходам, расходам и кредитам."""
     user_data = storage.get_user_data(str(update.effective_user.id))
     current_date = datetime.date.today()
     next_month = current_date.replace(day=1) + datetime.timedelta(days=32)
@@ -386,13 +386,25 @@ async def get_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Получаем информацию о доходах
     income_data = user_data.get('income', {})
     main_salary = income_data.get('main_salary', 0)
+    main_salary_day = income_data.get('main_salary_day')
     advance = income_data.get('advance', 0)
+    advance_day = income_data.get('advance_day')
     extra_income = income_data.get('extra', 0)
     total_income = main_salary + advance + extra_income
 
     # Получаем информацию о регулярных расходах
     regular_expenses = user_data.get('regular_expenses', [])
     total_regular_expenses = sum(expense['amount'] for expense in regular_expenses)
+
+    # Получаем информацию о кредитах
+    loans = user_data.get('loans', [])
+    total_monthly_credit_payments = 0
+    credit_info = ""
+    for loan in loans:
+        monthly_rate = loan['rate'] / 100 / 12
+        monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
+        total_monthly_credit_payments += monthly_payment
+        credit_info += f"- {loan['name']}: {monthly_payment:,.2f} руб. ({loan['payment_day']} числа)\n"
 
     # Формируем сводку
     summary = "📊 Сводная информация\n\n"
@@ -401,23 +413,63 @@ async def get_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
     summary += f"🗓 ТЕКУЩИЙ МЕСЯЦ ({current_date.strftime('%B %Y')})\n"
     summary += f"💰 Общий доход: {total_income:,.2f} руб.\n"
     if main_salary:
-        summary += f"- Основная зарплата: {main_salary:,.2f} руб.\n"
+        summary += f"- Основная зарплата: {main_salary:,.2f} руб. ({main_salary_day} числа)\n"
     if advance:
-        summary += f"- Аванс: {advance:,.2f} руб.\n"
+        summary += f"- Аванс: {advance:,.2f} руб. ({advance_day} числа)\n"
     if extra_income:
         summary += f"- Дополнительный доход: {extra_income:,.2f} руб.\n"
     
     summary += f"\n📝 Регулярные расходы: {total_regular_expenses:,.2f} руб.\n"
     for expense in regular_expenses:
-        summary += f"- {expense['name']}: {expense['amount']:,.2f} руб.\n"
+        summary += f"- {expense['name']}: {expense['amount']:,.2f} руб. ({expense['day']} числа)\n"
+
+    if loans:
+        summary += f"\n💳 Кредитные платежи: {total_monthly_credit_payments:,.2f} руб.\n"
+        summary += credit_info
     
-    balance = total_income - total_regular_expenses
+    total_expenses = total_regular_expenses + total_monthly_credit_payments
+    balance = total_income - total_expenses
     summary += f"\n💵 Остаток: {balance:,.2f} руб.\n"
+
+    # Расчет остатка на день до следующего дохода
+    if main_salary_day or advance_day:
+        next_income_date = None
+        next_income_amount = 0
+        
+        # Определяем следующую дату дохода
+        if main_salary_day:
+            main_salary_date = current_date.replace(day=main_salary_day)
+            if main_salary_date <= current_date:
+                main_salary_date = main_salary_date.replace(
+                    month=main_salary_date.month + 1 if main_salary_date.month < 12 else 1,
+                    year=main_salary_date.year + (1 if main_salary_date.month == 12 else 0)
+                )
+            if not next_income_date or main_salary_date < next_income_date:
+                next_income_date = main_salary_date
+                next_income_amount = main_salary
+
+        if advance_day:
+            advance_date = current_date.replace(day=advance_day)
+            if advance_date <= current_date:
+                advance_date = advance_date.replace(
+                    month=advance_date.month + 1 if advance_date.month < 12 else 1,
+                    year=advance_date.year + (1 if advance_date.month == 12 else 0)
+                )
+            if not next_income_date or advance_date < next_income_date:
+                next_income_date = advance_date
+                next_income_amount = advance
+
+        if next_income_date:
+            days_until_income = (next_income_date - current_date).days
+            daily_balance = balance / days_until_income if days_until_income > 0 else 0
+            summary += f"\n💰 Остаток на день до {next_income_date.strftime('%d.%m.%Y')}: {daily_balance:,.2f} руб.\n"
 
     # Следующий месяц
     summary += f"\n🗓 СЛЕДУЮЩИЙ МЕСЯЦ ({next_month.strftime('%B %Y')})\n"
     summary += f"💰 Ожидаемый доход: {total_income:,.2f} руб.\n"
     summary += f"📝 Ожидаемые регулярные расходы: {total_regular_expenses:,.2f} руб.\n"
+    if loans:
+        summary += f"💳 Кредитные платежи: {total_monthly_credit_payments:,.2f} руб.\n"
     summary += f"💵 Ожидаемый остаток: {balance:,.2f} руб.\n"
 
     await update.message.reply_text(summary)
