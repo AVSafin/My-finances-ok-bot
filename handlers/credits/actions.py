@@ -5,7 +5,7 @@ storage = Storage()
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters
 import datetime
 import logging
-from constants import BANKS, CATEGORIES
+from constants import BANKS, CATEGORIES, CREDIT_MODIFICATION_MENU, CREDIT_REPAYMENT_MENU
 
 # Этапы диалога для кредитов
 ASK_BANK, ASK_CATEGORY, ASK_AMOUNT, ASK_RATE, ASK_TERM, ASK_DAY, ASK_DATE = range(7)
