@@ -66,7 +66,7 @@ async def calculate_daily_balance_start(update: Update, context: ContextTypes.DE
     """Начинает диалог для расчета остатка денег на день."""
     user_data = storage.get_user_data(str(update.effective_user.id))
     income_data = user_data.get('income', {})
-    
+
     if 'main_salary_day' in income_data:
         context.user_data["salary_day"] = income_data['main_salary_day']
         await update.message.reply_text("Введите ваш текущий остаток денежных средств:")
@@ -80,7 +80,7 @@ async def ask_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         balance = float(update.message.text)
         context.user_data["balance"] = balance
-        
+
         if "salary_day" in context.user_data:
             # Используем сохраненный день зарплаты
             return await ask_salary_day(update, context, skip_input=True)
@@ -209,19 +209,19 @@ async def manage_income_start(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def handle_income_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает выбор в меню доходов."""
     choice = update.message.text
-    
+
     if choice == "Основной доход":
         await update.message.reply_text("Введите размер основной части зарплаты:")
         return ADD_MAIN_INCOME
-    
+
     elif choice == "Дополнительный доход":
         await update.message.reply_text("Введите размер дополнительного дохода:")
         return ADD_EXTRA_INCOME
-    
+
     elif choice == "Просмотреть доходы":
         user_data = storage.get_user_data(str(update.effective_user.id))
         income_data = user_data.get('income', {})
-        
+
         if not income_data:
             await update.message.reply_text("У вас пока нет сохраненных доходов")
         else:
@@ -234,10 +234,10 @@ async def handle_income_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 result += f"📅 День выплаты: {income_data.get('advance_day', 'не указан')}\n\n"
             if 'extra' in income_data:
                 result += f"💰 Дополнительный доход: {income_data['extra']:,.2f} руб.\n"
-            
+
             await update.message.reply_text(result)
         return INCOME_MENU
-    
+
     elif choice == "Удалить доходы":
         user_data = storage.get_user_data(str(update.effective_user.id))
         if 'income' in user_data:
@@ -408,7 +408,7 @@ async def get_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Формируем сводку
     summary = "📊 Сводная информация\n\n"
-    
+
     # Текущий месяц
     summary += f"🗓 ТЕКУЩИЙ МЕСЯЦ ({current_date.strftime('%B %Y')})\n"
     summary += f"💰 Общий доход: {total_income:,.2f} руб.\n"
@@ -418,7 +418,7 @@ async def get_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
         summary += f"- Аванс: {advance:,.2f} руб. ({advance_day} числа)\n"
     if extra_income:
         summary += f"- Дополнительный доход: {extra_income:,.2f} руб.\n"
-    
+
     summary += f"\n📝 Регулярные расходы: {total_regular_expenses:,.2f} руб.\n"
     for expense in regular_expenses:
         summary += f"- {expense['name']}: {expense['amount']:,.2f} руб. ({expense['day']} числа)\n"
@@ -426,43 +426,27 @@ async def get_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if loans:
         summary += f"\n💳 Кредитные платежи: {total_monthly_credit_payments:,.2f} руб.\n"
         summary += credit_info
-    
+
     total_expenses = total_regular_expenses + total_monthly_credit_payments
     balance = total_income - total_expenses
     summary += f"\n💵 Остаток: {balance:,.2f} руб.\n"
 
-    # Расчет остатка на день до следующего дохода
-    if main_salary_day or advance_day:
-        next_income_date = None
-        next_income_amount = 0
-        
-        # Определяем следующую дату дохода
-        if main_salary_day:
-            main_salary_date = current_date.replace(day=main_salary_day)
-            if main_salary_date <= current_date:
-                main_salary_date = main_salary_date.replace(
-                    month=main_salary_date.month + 1 if main_salary_date.month < 12 else 1,
-                    year=main_salary_date.year + (1 if main_salary_date.month == 12 else 0)
-                )
-            if not next_income_date or main_salary_date < next_income_date:
-                next_income_date = main_salary_date
-                next_income_amount = main_salary
+    # Расчет среднего остатка на день с учетом всех доходов и расходов
+    days_in_month = (next_month - current_date).days
 
-        if advance_day:
-            advance_date = current_date.replace(day=advance_day)
-            if advance_date <= current_date:
-                advance_date = advance_date.replace(
-                    month=advance_date.month + 1 if advance_date.month < 12 else 1,
-                    year=advance_date.year + (1 if advance_date.month == 12 else 0)
-                )
-            if not next_income_date or advance_date < next_income_date:
-                next_income_date = advance_date
-                next_income_amount = advance
+    # Рассчитываем ежедневный доход
+    daily_income = total_income / 30  # Усредняем на 30 дней
 
-        if next_income_date:
-            days_until_income = (next_income_date - current_date).days
-            daily_balance = balance / days_until_income if days_until_income > 0 else 0
-            summary += f"\n💰 Остаток на день до {next_income_date.strftime('%d.%m.%Y')}: {daily_balance:,.2f} руб.\n"
+    # Рассчитываем ежедневные расходы
+    daily_expenses = total_expenses / 30  # Усредняем на 30 дней
+
+    # Рассчитываем среднедневной остаток
+    average_daily_balance = daily_income - daily_expenses
+
+    summary += f"\n💰 В среднем на день остается: {average_daily_balance:,.2f} руб.\n"
+    summary += f"   • Доходы в день: {daily_income:,.2f} руб.\n"
+    summary += f"   • Расходы в день: {daily_expenses:,.2f} руб.\n"
+
 
     # Следующий месяц
     summary += f"\n🗓 СЛЕДУЮЩИЙ МЕСЯЦ ({next_month.strftime('%B %Y')})\n"
