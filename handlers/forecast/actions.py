@@ -376,3 +376,48 @@ async def view_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
     result += f"\n💎 Общий месячный доход: {total:,.2f} руб."
 
     await update.message.reply_text(result)
+async def get_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Предоставляет сводную информацию по доходам и расходам."""
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    current_date = datetime.date.today()
+    next_month = current_date.replace(day=1) + datetime.timedelta(days=32)
+    next_month = next_month.replace(day=1)
+
+    # Получаем информацию о доходах
+    income_data = user_data.get('income', {})
+    main_salary = income_data.get('main_salary', 0)
+    advance = income_data.get('advance', 0)
+    extra_income = income_data.get('extra', 0)
+    total_income = main_salary + advance + extra_income
+
+    # Получаем информацию о регулярных расходах
+    regular_expenses = user_data.get('regular_expenses', [])
+    total_regular_expenses = sum(expense['amount'] for expense in regular_expenses)
+
+    # Формируем сводку
+    summary = "📊 Сводная информация\n\n"
+    
+    # Текущий месяц
+    summary += f"🗓 ТЕКУЩИЙ МЕСЯЦ ({current_date.strftime('%B %Y')})\n"
+    summary += f"💰 Общий доход: {total_income:,.2f} руб.\n"
+    if main_salary:
+        summary += f"- Основная зарплата: {main_salary:,.2f} руб.\n"
+    if advance:
+        summary += f"- Аванс: {advance:,.2f} руб.\n"
+    if extra_income:
+        summary += f"- Дополнительный доход: {extra_income:,.2f} руб.\n"
+    
+    summary += f"\n📝 Регулярные расходы: {total_regular_expenses:,.2f} руб.\n"
+    for expense in regular_expenses:
+        summary += f"- {expense['name']}: {expense['amount']:,.2f} руб.\n"
+    
+    balance = total_income - total_regular_expenses
+    summary += f"\n💵 Остаток: {balance:,.2f} руб.\n"
+
+    # Следующий месяц
+    summary += f"\n🗓 СЛЕДУЮЩИЙ МЕСЯЦ ({next_month.strftime('%B %Y')})\n"
+    summary += f"💰 Ожидаемый доход: {total_income:,.2f} руб.\n"
+    summary += f"📝 Ожидаемые регулярные расходы: {total_regular_expenses:,.2f} руб.\n"
+    summary += f"💵 Ожидаемый остаток: {balance:,.2f} руб.\n"
+
+    await update.message.reply_text(summary)

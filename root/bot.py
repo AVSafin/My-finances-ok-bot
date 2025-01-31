@@ -166,6 +166,10 @@ def main():
         filters.TEXT & filters.Regex("^Просмотреть регулярные расходы$"),
         view_regular_expenses
     ))
+    application.add_handler(MessageHandler(
+        filters.TEXT & filters.Regex("^Свод$"),
+        get_summary
+    ))
     
     # Обработчик управления доходами
     income_handler = ConversationHandler(
