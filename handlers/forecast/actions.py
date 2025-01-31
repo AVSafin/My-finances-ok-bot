@@ -209,20 +209,44 @@ async def manage_income_start(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def handle_income_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает выбор в меню доходов."""
     choice = update.message.text
+    
     if choice == "Основной доход":
         await update.message.reply_text("Введите размер основной части зарплаты:")
         return ADD_MAIN_INCOME
+    
     elif choice == "Дополнительный доход":
         await update.message.reply_text("Введите размер дополнительного дохода:")
         return ADD_EXTRA_INCOME
+    
     elif choice == "Просмотреть доходы":
-        await view_income(update, context)
-        return ConversationHandler.END
+        user_data = storage.get_user_data(str(update.effective_user.id))
+        income_data = user_data.get('income', {})
+        
+        if not income_data:
+            await update.message.reply_text("У вас пока нет сохраненных доходов")
+        else:
+            result = "📋 Ваши доходы:\n\n"
+            if 'main_salary' in income_data:
+                result += f"💰 Основная зарплата: {income_data['main_salary']:,.2f} руб.\n"
+                result += f"📅 День выплаты: {income_data.get('main_salary_day', 'не указан')}\n\n"
+            if 'advance' in income_data:
+                result += f"💰 Аванс: {income_data['advance']:,.2f} руб.\n"
+                result += f"📅 День выплаты: {income_data.get('advance_day', 'не указан')}\n\n"
+            if 'extra' in income_data:
+                result += f"💰 Дополнительный доход: {income_data['extra']:,.2f} руб.\n"
+            
+            await update.message.reply_text(result)
+        return INCOME_MENU
+    
     elif choice == "Удалить доходы":
         user_data = storage.get_user_data(str(update.effective_user.id))
         if 'income' in user_data:
             del user_data['income']
             storage.update_user_data(str(update.effective_user.id), user_data)
+            await update.message.reply_text("Все данные о доходах удалены")
+        else:
+            await update.message.reply_text("Нет сохраненных данных о доходах")
+        return INCOME_MENU.id), user_data)
             await update.message.reply_text("Все данные о доходах удалены")
         else:
             await update.message.reply_text("Нет сохраненных данных о доходах")
@@ -297,7 +321,11 @@ async def add_extra_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_data['income'] = {}
         user_data['income']['extra'] = amount
         storage.update_user_data(str(update.effective_user.id), user_data)
-        await update.message.reply_text(f"Дополнительный доход {amount:,.2f} руб. успешно сохранен!")
+        await update.message.reply_text(f"Дополнительный доход {amount:,.2f} руб. успешно сохранен")
+        return INCOME_MENU
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return ADD_EXTRA_INCOMEешно сохранен!")
         return ConversationHandler.END
     except ValueError:
         await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
