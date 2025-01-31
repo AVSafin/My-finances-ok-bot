@@ -276,64 +276,52 @@ async def save_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Сохраняет данные о доходах."""
     temp_income = context.user_data.get('temp_income', {})
     user_data = storage.get_user_data(str(update.effective_user.id))
-    
+
     if 'income' not in user_data:
         user_data['income'] = {}
-    
+
     user_data['income'].update({
         'main_salary': temp_income.get('main_salary', 0),
         'main_salary_day': temp_income.get('main_salary_day', 1),
         'advance': temp_income.get('advance', 0),
         'advance_day': temp_income.get('advance_day', 15) if temp_income.get('advance', 0) > 0 else None
     })
-    
+
     storage.update_user_data(str(update.effective_user.id), user_data)
-    
-    result = (
-        f"✅ Данные о доходах сохранены:\n"
-        f"💰 Основная зарплата: {temp_income.get('main_salary', 0):,.2f} руб. "
-        f"(день: {temp_income.get('main_salary_day', 1)})\n"
-    )
-    
-    if temp_income.get('advance', 0) > 0:
-        result += (
-            f"💵 Аванс: {temp_income.get('advance', 0):,.2f} руб. "
-            f"(день: {temp_income.get('advance_day', 15)})\n"
-        )
-    
-    await update.message.reply_text(result)
+    await update.message.reply_text("Данные о доходах успешно сохранены!")
+    return ConversationHandler.END
 
 async def view_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отображает информацию о доходах."""
     user_data = storage.get_user_data(str(update.effective_user.id))
     income_data = user_data.get('income', {})
-    
+
     if not income_data:
         await update.message.reply_text("У вас пока не добавлено информации о доходах.")
         return
-    
+
     result = "📊 Информация о доходах:\n\n"
-    
+
     if 'main_salary' in income_data:
         result += (
             f"💰 Основная зарплата: {income_data['main_salary']:,.2f} руб.\n"
             f"📅 День выплаты: {income_data['main_salary_day']}\n"
         )
-    
+
     if income_data.get('advance', 0) > 0:
         result += (
             f"\n💵 Аванс: {income_data['advance']:,.2f} руб.\n"
             f"📅 День выплаты: {income_data['advance_day']}\n"
         )
-    
+
     if 'extra' in income_data:
         result += f"\n✨ Дополнительный доход: {income_data['extra']:,.2f} руб.\n"
-    
+
     total = (
         income_data.get('main_salary', 0) +
         income_data.get('advance', 0) +
         income_data.get('extra', 0)
     )
     result += f"\n💎 Общий месячный доход: {total:,.2f} руб."
-    
+
     await update.message.reply_text(result)
