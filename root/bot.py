@@ -147,6 +147,21 @@ def main():
     )
     application.add_handler(delete_credit_handler)
 
+    # Обработчик изменения кредита
+    modify_credit_handler = ConversationHandler(
+        entry_points=[MessageHandler(filters.TEXT & filters.Regex("^Изменение кредита$"), modify_credit)],
+        states={
+            CHOOSE_CREDIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_credit_choice)],
+            CHOOSE_ACTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_action_choice)],
+            ASK_NEW_PAYMENT_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_payment_day)],
+            ASK_CHANGE_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_change_date)],
+            ASK_REPAYMENT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_repayment_amount)],
+            CONFIRM_CHANGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_confirm_changes)],
+        },
+        fallbacks=[],
+    )
+    application.add_handler(modify_credit_handler)
+
     # Регистрация обработчика ошибок
     application.add_error_handler(error_handler)
 

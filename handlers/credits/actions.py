@@ -284,3 +284,135 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except ValueError:
         await update.message.reply_text("Некорректный формат даты. Пожалуйста, введите дату в формате ГГГГ-ММ-ДД:")
         return ASK_DATE
+# States for credit modification
+CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, CONFIRM_CHANGES = range(6)
+
+async def modify_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Starts credit modification process."""
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    loans = user_data.get("loans", [])
+    if not loans:
+        await update.message.reply_text("У вас пока нет добавленных кредитов для изменения.")
+        return ConversationHandler.END
+
+    loan_list = "\n".join([f"{i + 1}. {loan['name']}" for i, loan in enumerate(loans)])
+    await update.message.reply_text(f"Выберите номер кредита для изменения:\n\n{loan_list}")
+    return CHOOSE_CREDIT
+
+async def handle_credit_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles credit selection and shows modification options."""
+    try:
+        credit_index = int(update.message.text) - 1
+        user_data = storage.get_user_data(str(update.effective_user.id))
+        loans = user_data.get("loans", [])
+        if credit_index < 0 or credit_index >= len(loans):
+            raise ValueError
+        
+        context.user_data['selected_credit_index'] = credit_index
+        keyboard = ReplyKeyboardMarkup(CREDIT_MODIFICATION_MENU, resize_keyboard=True)
+        await update.message.reply_text("Выберите действие:", reply_markup=keyboard)
+        return CHOOSE_ACTION
+    except ValueError:
+        await update.message.reply_text("Некорректный номер. Пожалуйста, введите корректный номер кредита.")
+        return CHOOSE_CREDIT
+
+async def handle_action_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles modification action selection."""
+    action = update.message.text
+    if action == "Досрочное погашение":
+        keyboard = ReplyKeyboardMarkup(CREDIT_REPAYMENT_MENU, resize_keyboard=True)
+        await update.message.reply_text("Выберите вариант досрочного погашения:", reply_markup=keyboard)
+        return ASK_REPAYMENT_AMOUNT
+    elif action == "Изменение даты платежа":
+        await update.message.reply_text("Введите новый день платежа (число от 1 до 28):")
+        return ASK_NEW_PAYMENT_DAY
+    else:
+        return ConversationHandler.END
+
+async def handle_repayment_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles early repayment amount input."""
+    try:
+        repayment_type = update.message.text
+        if repayment_type in ["Уменьшение срока", "Уменьшение платежа"]:
+            context.user_data['repayment_type'] = repayment_type
+            await update.message.reply_text("Введите сумму досрочного погашения:")
+            return CONFIRM_CHANGES
+        else:
+            await update.message.reply_text("Пожалуйста, выберите вариант из меню.")
+            return ASK_REPAYMENT_AMOUNT
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return ASK_REPAYMENT_AMOUNT
+
+async def handle_new_payment_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles new payment day input."""
+    try:
+        new_day = int(update.message.text)
+        if new_day < 1 or new_day > 28:
+            raise ValueError
+        context.user_data['new_payment_day'] = new_day
+        await update.message.reply_text("Введите дату, с которой будет действовать новый день платежа (ГГГГ-ММ-ДД):")
+        return ASK_CHANGE_DATE
+    except ValueError:
+        await update.message.reply_text("Некорректный день. Введите число от 1 до 28:")
+        return ASK_NEW_PAYMENT_DAY
+
+async def handle_change_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the date from which the new payment day will be effective."""
+    try:
+        new_date = datetime.datetime.strptime(update.message.text, "%Y-%m-%d").date()
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        
+        user_data['loans'][credit_index]['payment_day'] = context.user_data['new_payment_day']
+        user_data['loans'][credit_index]['date'] = new_date.strftime("%Y-%m-%d")
+        
+        storage.update_user_data(user_id, user_data)
+        
+        await update.message.reply_text(
+            f"Дата платежа успешно изменена!\n"
+            f"Новый день платежа: {context.user_data['new_payment_day']}\n"
+            f"Действует с: {new_date.strftime('%Y-%m-%d')}"
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректный формат даты. Используйте формат ГГГГ-ММ-ДД:")
+        return ASK_CHANGE_DATE
+
+async def handle_confirm_changes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Confirms and applies early repayment changes."""
+    try:
+        repayment_amount = float(update.message.text)
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        loan = user_data['loans'][credit_index]
+
+        monthly_payment = calculate_monthly_payment(loan['amount'], loan['rate'], loan['term'])
+        
+        if context.user_data['repayment_type'] == "Уменьшение срока":
+            # Пересчитываем срок при том же платеже
+            remaining_amount = loan['amount'] - repayment_amount
+            new_term = int(remaining_amount * monthly_payment / (monthly_payment * loan['term']))
+            loan['amount'] = remaining_amount
+            loan['term'] = new_term
+        else:  # Уменьшение платежа
+            # Сохраняем срок, пересчитываем платеж
+            loan['amount'] -= repayment_amount
+        
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+        
+        new_payment = calculate_monthly_payment(loan['amount'], loan['rate'], loan['term'])
+        
+        await update.message.reply_text(
+            f"Досрочное погашение выполнено успешно!\n"
+            f"Сумма погашения: {repayment_amount:,.2f} руб.\n"
+            f"Новый ежемесячный платеж: {new_payment:,.2f} руб.\n"
+            f"Оставшийся срок: {loan['term']} месяцев"
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return CONFIRM_CHANGES
