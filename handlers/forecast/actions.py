@@ -184,6 +184,7 @@ async def manage_income_start(update: Update, context: ContextTypes.DEFAULT_TYPE
         ["Основной доход"],
         ["Дополнительный доход"],
         ["Просмотреть доходы"],
+        ["Удалить доходы"],
         ["Назад"]
     ], resize_keyboard=True)
     await update.message.reply_text("Выберите тип дохода:", reply_markup=keyboard)
@@ -200,6 +201,15 @@ async def handle_income_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return ADD_EXTRA_INCOME
     elif choice == "Просмотреть доходы":
         await view_income(update, context)
+        return ConversationHandler.END
+    elif choice == "Удалить доходы":
+        user_data = storage.get_user_data(str(update.effective_user.id))
+        if 'income' in user_data:
+            del user_data['income']
+            storage.update_user_data(str(update.effective_user.id), user_data)
+            await update.message.reply_text("Все данные о доходах удалены")
+        else:
+            await update.message.reply_text("Нет сохраненных данных о доходах")
         return ConversationHandler.END
     elif choice == "Назад":
         await update.message.reply_text("Возвращаемся в главное меню")
