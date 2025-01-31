@@ -2,6 +2,9 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters
 import datetime
 from datetime import date
+from storage import Storage
+
+storage = Storage()
 
 # Этапы диалога для регулярных расходов
 ADD_EXPENSE_NAME, ADD_EXPENSE_AMOUNT, ADD_EXPENSE_DAY = range(3, 6)
