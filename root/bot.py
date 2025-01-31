@@ -53,6 +53,7 @@ from handlers.forecast.actions import (
     add_expense_name,
     add_expense_amount,
     add_expense_day,
+    view_regular_expenses,
     ADD_EXPENSE_NAME,
     ADD_EXPENSE_AMOUNT,
     ADD_EXPENSE_DAY,
