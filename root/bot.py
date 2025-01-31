@@ -57,6 +57,19 @@ from handlers.forecast.actions import (
     ADD_EXPENSE_NAME,
     ADD_EXPENSE_AMOUNT,
     ADD_EXPENSE_DAY,
+    manage_income_start,
+    handle_income_menu,
+    add_main_income,
+    add_main_income_day,
+    add_advance,
+    add_advance_day,
+    add_extra_income,
+    INCOME_MENU,
+    ADD_MAIN_INCOME,
+    ADD_MAIN_INCOME_DAY,
+    ADD_ADVANCE,
+    ADD_ADVANCE_DAY,
+    ADD_EXTRA_INCOME,
 )
 from constants import MAIN_MENU, CREDITS_MENU, SAVINGS_MENU, FORECAST_MENU
 
