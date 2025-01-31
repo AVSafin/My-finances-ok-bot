@@ -1,4 +1,3 @@
-
 import os
 import logging
 from telegram import Update, ReplyKeyboardMarkup
@@ -120,13 +119,15 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Действие отменено. Возврат в главное меню.", reply_markup=keyboard)
     return ConversationHandler.END
 
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Логирует ошибки и уведомляет пользователя о возникновении ошибки."""
-    logging.error(msg="Исключение при обработке обновления:", exc_info=context.error)
-    if update:
+    logging.error("Исключение при обработке обновления:", exc_info=context.error)
+    if update and update.effective_message:
         try:
-            await update.message.reply_text(
-                "Произошла непредвиденная ошибка при обработке вашего сообщения. Пожалуйста, попробуйте позже."
+            keyboard = ReplyKeyboardMarkup([["Назад"]], resize_keyboard=True)
+            await update.effective_message.reply_text(
+                "Произошла ошибка при обработке вашего запроса. Попробуйте вернуться в главное меню.",
+                reply_markup=keyboard
             )
         except Exception as e:
             logging.error(f"Не удалось отправить сообщение об ошибке пользователю: {e}")
@@ -135,7 +136,7 @@ def main():
     """Запускает бота."""
     import signal
     import sys
-    
+
     logging.info("Starting bot...")
 
     def signal_handler(signum, frame):

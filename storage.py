@@ -61,9 +61,13 @@ class Storage:
                 return obj.isoformat()
             return obj
 
-        with self.conn:
-            self.conn.execute(
-                """INSERT OR REPLACE INTO user_data (user_id, data) 
-                   VALUES (?, ?)""",
-                (str(user_id), json.dumps(data, default=date_handler))
-            )
+        try:
+            with self.conn:
+                self.conn.execute(
+                    """INSERT OR REPLACE INTO user_data (user_id, data) 
+                       VALUES (?, ?)""",
+                    (str(user_id), json.dumps(data, default=date_handler))
+                )
+        except sqlite3.Error as e:
+            logging.error(f"Database error: {e}")
+            raise Exception("Ошибка при сохранении данных")

@@ -201,7 +201,12 @@ async def handle_income_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif choice == "Просмотреть доходы":
         await view_income(update, context)
         return ConversationHandler.END
-    return ConversationHandler.END
+    elif choice == "Назад":
+        await update.message.reply_text("Возвращаемся в главное меню")
+        return ConversationHandler.END
+    else:
+        await update.message.reply_text("Пожалуйста, выберите действие из меню")
+        return INCOME_MENU
 
 async def add_main_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Получает размер основной зарплаты."""
