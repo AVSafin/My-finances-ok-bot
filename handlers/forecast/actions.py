@@ -246,11 +246,7 @@ async def handle_income_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_text("Все данные о доходах удалены")
         else:
             await update.message.reply_text("Нет сохраненных данных о доходах")
-        return INCOME_MENU.id), user_data)
-            await update.message.reply_text("Все данные о доходах удалены")
-        else:
-            await update.message.reply_text("Нет сохраненных данных о доходах")
-        return ConversationHandler.END
+        return INCOME_MENU
     elif choice == "Назад":
         await update.message.reply_text("Возвращаемся в главное меню")
         return ConversationHandler.END
