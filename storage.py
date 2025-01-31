@@ -1,4 +1,3 @@
-
 import sqlite3
 import json
 from typing import Dict, Any
@@ -17,7 +16,7 @@ class Storage:
                 CREATE TABLE IF NOT EXISTS user_data
                 (user_id TEXT PRIMARY KEY, data TEXT)
             """)
-    
+
     def _add_default_credits(self):
         """Add default credits for new users"""
         default_credits = {
@@ -57,9 +56,14 @@ class Storage:
 
     def update_user_data(self, user_id: str, data: dict):
         """Update data for specific user"""
+        def date_handler(obj):
+            if isinstance(obj, datetime.date):
+                return obj.isoformat()
+            return obj
+
         with self.conn:
             self.conn.execute(
                 """INSERT OR REPLACE INTO user_data (user_id, data) 
                    VALUES (?, ?)""",
-                (str(user_id), json.dumps(data))
+                (str(user_id), json.dumps(data, default=date_handler))
             )
