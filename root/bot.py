@@ -171,7 +171,7 @@ def main():
             ASK_REPAYMENT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_repayment_amount)],
             CONFIRM_CHANGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_confirm_changes)],
         },
-        fallbacks=[],
+        fallbacks=[MessageHandler(filters.TEXT & filters.Regex("^Назад$"), handle_back_button)],
     )
     application.add_handler(modify_credit_handler)
 
