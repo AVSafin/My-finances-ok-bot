@@ -64,27 +64,43 @@ ASK_BALANCE, ASK_SALARY_DAY = range(2)
 
 async def calculate_daily_balance_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Начинает диалог для расчета остатка денег на день."""
-    await update.message.reply_text("Введите ваш текущий остаток денежных средств:")
-    return ASK_BALANCE
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    income_data = user_data.get('income', {})
+    
+    if 'main_salary_day' in income_data:
+        context.user_data["salary_day"] = income_data['main_salary_day']
+        await update.message.reply_text("Введите ваш текущий остаток денежных средств:")
+        return ASK_BALANCE
+    else:
+        await update.message.reply_text("Введите ваш текущий остаток денежных средств:")
+        return ASK_BALANCE
 
 async def ask_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Получает остаток денежных средств от пользователя."""
     try:
         balance = float(update.message.text)
         context.user_data["balance"] = balance
-        await update.message.reply_text("Введите число месяца, когда у вас следующее начисление зарплаты (от 1 до 31):")
-        return ASK_SALARY_DAY
+        
+        if "salary_day" in context.user_data:
+            # Используем сохраненный день зарплаты
+            return await ask_salary_day(update, context, skip_input=True)
+        else:
+            await update.message.reply_text("Введите число месяца, когда у вас следующее начисление зарплаты (от 1 до 31):")
+            return ASK_SALARY_DAY
     except ValueError:
         await update.message.reply_text("Некорректный формат суммы. Пожалуйста, введите число:")
         return ASK_BALANCE
 
-async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE, skip_input=False):
     """Получает день начисления зарплаты и рассчитывает остаток с учетом регулярных расходов."""
     try:
-        salary_day = int(update.message.text)
-        if salary_day < 1 or salary_day > 31:
-            raise ValueError
-        context.user_data["salary_day"] = salary_day
+        if skip_input:
+            salary_day = context.user_data["salary_day"]
+        else:
+            salary_day = int(update.message.text)
+            if salary_day < 1 or salary_day > 31:
+                raise ValueError
+            context.user_data["salary_day"] = salary_day
 
         balance = context.user_data["balance"]
         current_date = date.today()
