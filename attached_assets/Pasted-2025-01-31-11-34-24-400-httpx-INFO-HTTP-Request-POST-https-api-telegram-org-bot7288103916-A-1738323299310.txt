@@ -1,0 +1,33 @@
+2025-01-31 11:34:24,400 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-31 11:34:24,401 - root - ERROR - Исключение при обработке обновления:
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_application.py", line 1325, in process_update
+    await coroutine
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_handlers/conversationhandler.py", line 842, in handle_update
+    new_state: object = await handler.handle_update(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py", line 158, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/handlers/credits/actions.py", line 371, in handle_change_date
+    storage.update_user_data(user_id, user_data)
+  File "/home/runner/workspace/storage.py", line 64, in update_user_data
+    (str(user_id), json.dumps(data))
+                   ^^^^^^^^^^^^^^^^
+  File "/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/json/__init__.py", line 231, in dumps
+    return _default_encoder.encode(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type date is not JSON serializable
+2025-01-31 11:34:25,063 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/sendMessage "HTTP/1.1 200 OK"
+2025-01-31 11:34:34,586 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-31 11:34:39,063 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7288103916:AAHx2JIi5nP97tPIyfH0KFOnwU3Mg3H7qqQ/getUpdates "HTTP/1.1 200 OK"
+2025-01-31 11:34:39,064 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-01-31 11:34:39,064 - telegram.ext.Application - INFO - Application.stop() complete
