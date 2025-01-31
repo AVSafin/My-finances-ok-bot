@@ -48,6 +48,13 @@ from handlers.forecast.actions import (
     ask_balance,
     ask_salary_day,
     daily_balance_handler,
+    start_add_expense,
+    add_expense_name,
+    add_expense_amount,
+    add_expense_day,
+    ADD_EXPENSE_NAME,
+    ADD_EXPENSE_AMOUNT,
+    ADD_EXPENSE_DAY,
 )
 from constants import MAIN_MENU, CREDITS_MENU, SAVINGS_MENU, FORECAST_MENU
 
@@ -140,6 +147,19 @@ def main():
         states={
             ASK_BANK: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_bank)],
             ASK_CATEGORY: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_category)],
+
+    # Обработчик добавления регулярных расходов
+    regular_expenses_handler = ConversationHandler(
+        entry_points=[MessageHandler(filters.Regex("^Добавить регулярный расход$"), start_add_expense)],
+        states={
+            ADD_EXPENSE_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_expense_name)],
+            ADD_EXPENSE_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_expense_amount)],
+            ADD_EXPENSE_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_expense_day)],
+        },
+        fallbacks=[MessageHandler(filters.Regex("^Отмена$"), cancel)],
+    )
+    application.add_handler(regular_expenses_handler)
+
             ASK_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_amount)],
             ASK_RATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_rate)],
             ASK_TERM: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_term)],

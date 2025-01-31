@@ -3,6 +3,59 @@ from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filt
 import datetime
 from datetime import date
 
+# Этапы диалога для регулярных расходов
+ADD_EXPENSE_NAME, ADD_EXPENSE_AMOUNT, ADD_EXPENSE_DAY = range(3, 6)
+
+async def start_add_expense(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Начинает диалог добавления регулярного расхода."""
+    await update.message.reply_text("Введите название регулярного расхода (например: Аренда, Интернет):")
+    return ADD_EXPENSE_NAME
+
+async def add_expense_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает название расхода."""
+    context.user_data['temp_expense'] = {'name': update.message.text}
+    await update.message.reply_text("Введите сумму расхода:")
+    return ADD_EXPENSE_AMOUNT
+
+async def add_expense_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает сумму расхода."""
+    try:
+        amount = float(update.message.text)
+        context.user_data['temp_expense']['amount'] = amount
+        await update.message.reply_text("Введите день месяца для расхода (1-31):")
+        return ADD_EXPENSE_DAY
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return ADD_EXPENSE_AMOUNT
+
+async def add_expense_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает день расхода и сохраняет расход."""
+    try:
+        day = int(update.message.text)
+        if day < 1 or day > 31:
+            raise ValueError
+        
+        user_data = storage.get_user_data(str(update.effective_user.id))
+        if 'regular_expenses' not in user_data:
+            user_data['regular_expenses'] = []
+            
+        expense = context.user_data['temp_expense']
+        expense['day'] = day
+        user_data['regular_expenses'].append(expense)
+        storage.update_user_data(str(update.effective_user.id), user_data)
+        
+        await update.message.reply_text(
+            f"Регулярный расход добавлен:\n"
+            f"📝 Название: {expense['name']}\n"
+            f"💰 Сумма: {expense['amount']:,.2f} руб.\n"
+            f"📅 День: {expense['day']}"
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректный день. Введите число от 1 до 31:")
+        return ADD_EXPENSE_DAY
+
+
 # Этапы диалога
 ASK_BALANCE, ASK_SALARY_DAY = range(2)
 
@@ -23,7 +76,7 @@ async def ask_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ASK_BALANCE
 
 async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Получает день начисления зарплаты и рассчитывает остаток."""
+    """Получает день начисления зарплаты и рассчитывает остаток с учетом регулярных расходов."""
     try:
         salary_day = int(update.message.text)
         if salary_day < 1 or salary_day > 31:
@@ -49,12 +102,32 @@ async def ask_salary_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Вы ввели некорректную дату зарплаты. Попробуйте еще раз")
             return ASK_SALARY_DAY
 
+        # Учет регулярных расходов
+        user_data = storage.get_user_data(str(update.effective_user.id))
+        regular_expenses = user_data.get('regular_expenses', [])
+        total_expenses = 0
+        expenses_text = ""
+
+        for expense in regular_expenses:
+            expense_day = expense['day']
+            if (expense_day >= current_day and expense_day <= salary_day) or \
+               (salary_day < current_day and (expense_day >= current_day or expense_day <= salary_day)):
+                total_expenses += expense['amount']
+                expenses_text += f"📌 {expense['name']}: {expense['amount']:,.2f} руб. ({expense['day']} числа)\n"
+
         # Расчет среднего остатка на день
-        daily_balance = balance / days_until_salary
-        await update.message.reply_text(
-            f"Ваш средний остаток на день до зарплаты: {format(daily_balance, ',.2f')} руб.\n"
-            f"До зарплаты {days_until_salary} дней."
+        balance_after_expenses = balance - total_expenses
+        daily_balance = balance_after_expenses / days_until_salary
+        
+        result = (
+            f"💰 Текущий баланс: {balance:,.2f} руб.\n"
+            f"📊 Регулярные расходы до зарплаты:\n{expenses_text if expenses_text else '(нет регулярных расходов)\n'}"
+            f"💵 Баланс после расходов: {balance_after_expenses:,.2f} руб.\n"
+            f"📅 Средний остаток на день: {daily_balance:,.2f} руб.\n"
+            f"⏳ До зарплаты: {days_until_salary} дней"
         )
+        
+        await update.message.reply_text(result)
         return ConversationHandler.END
 
     except ValueError:
