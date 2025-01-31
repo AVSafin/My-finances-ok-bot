@@ -121,7 +121,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Логирует ошибки и уведомляет пользователя о возникновении ошибки."""
-    logging.error("Исключение при обработке обновления:", exc_info=context.error)
+    logging.error(msg="Исключение при обработке обновления:", exc_info=context.error)
     if update and update.effective_message:
         try:
             keyboard = ReplyKeyboardMarkup([["Назад"]], resize_keyboard=True)

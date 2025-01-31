@@ -77,8 +77,11 @@ async def payment_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "number": i + 1,
                 })
                 # Увеличиваем дату на 1 месяц
-                next_month = payment_date.month + 1 if payment_date.month < 12 else 1
-                next_year = payment_date.year + 1 if next_month == 1 else payment_date.year
+                next_month = payment_date.month + 1
+                next_year = payment_date.year
+                if next_month > 12:
+                    next_month = 1
+                    next_year += 1
                 payment_date = payment_date.replace(year=next_year, month=next_month)
 
             # Находим следующий платеж
@@ -307,7 +310,7 @@ async def handle_credit_choice(update: Update, context: ContextTypes.DEFAULT_TYP
         loans = user_data.get("loans", [])
         if credit_index < 0 or credit_index >= len(loans):
             raise ValueError
-        
+
         context.user_data['selected_credit_index'] = credit_index
         keyboard = ReplyKeyboardMarkup(CREDIT_MODIFICATION_MENU, resize_keyboard=True)
         await update.message.reply_text("Выберите действие:", reply_markup=keyboard)
@@ -364,12 +367,12 @@ async def handle_change_date(update: Update, context: ContextTypes.DEFAULT_TYPE)
         user_id = str(update.effective_user.id)
         user_data = storage.get_user_data(user_id)
         credit_index = context.user_data['selected_credit_index']
-        
+
         user_data['loans'][credit_index]['payment_day'] = context.user_data['new_payment_day']
         user_data['loans'][credit_index]['date'] = new_date
-        
+
         storage.update_user_data(user_id, user_data)
-        
+
         await update.message.reply_text(
             f"Дата платежа успешно изменена!\n"
             f"Новый день платежа: {context.user_data['new_payment_day']}\n"
@@ -390,7 +393,7 @@ async def handle_confirm_changes(update: Update, context: ContextTypes.DEFAULT_T
         loan = user_data['loans'][credit_index]
 
         monthly_payment = calculate_monthly_payment(loan['amount'], loan['rate'], loan['term'])
-        
+
         if context.user_data['repayment_type'] == "Уменьшение срока":
             # Пересчитываем срок при том же платеже
             remaining_amount = loan['amount'] - repayment_amount
@@ -400,12 +403,12 @@ async def handle_confirm_changes(update: Update, context: ContextTypes.DEFAULT_T
         else:  # Уменьшение платежа
             # Сохраняем срок, пересчитываем платеж
             loan['amount'] -= repayment_amount
-        
+
         user_data['loans'][credit_index] = loan
         storage.update_user_data(user_id, user_data)
-        
+
         new_payment = calculate_monthly_payment(loan['amount'], loan['rate'], loan['term'])
-        
+
         await update.message.reply_text(
             f"Досрочное погашение выполнено успешно!\n"
             f"Сумма погашения: {repayment_amount:,.2f} руб.\n"
