@@ -321,10 +321,6 @@ async def add_extra_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return INCOME_MENU
     except ValueError:
         await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
-        return ADD_EXTRA_INCOMEешно сохранен!")
-        return ConversationHandler.END
-    except ValueError:
-        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
         return ADD_EXTRA_INCOME
 
 async def save_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
