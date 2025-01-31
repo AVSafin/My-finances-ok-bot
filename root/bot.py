@@ -146,7 +146,7 @@ def main():
             ASK_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_day)],
             ASK_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_date)],
         },
-        fallbacks=[],  # Указываем фоллбэки если не получается обработать ввод
+        fallbacks=[MessageHandler(filters.TEXT & filters.Regex("^Назад$"), handle_back_button)],
     )
     application.add_handler(add_credit_handler)
 

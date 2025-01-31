@@ -366,7 +366,7 @@ async def handle_change_date(update: Update, context: ContextTypes.DEFAULT_TYPE)
         credit_index = context.user_data['selected_credit_index']
         
         user_data['loans'][credit_index]['payment_day'] = context.user_data['new_payment_day']
-        user_data['loans'][credit_index]['date'] = new_date.strftime("%Y-%m-%d")
+        user_data['loans'][credit_index]['date'] = new_date
         
         storage.update_user_data(user_id, user_data)
         
