@@ -175,3 +175,165 @@ def daily_balance_handler():
         fallbacks=[MessageHandler(filters.Regex("^Отмена$"), cancel)]  # Фallback для отмены
     )
     return conv_handler
+# Этапы диалога для управления доходами
+INCOME_MENU, ADD_MAIN_INCOME, ADD_MAIN_INCOME_DAY, ADD_ADVANCE, ADD_ADVANCE_DAY, ADD_EXTRA_INCOME = range(6, 12)
+
+async def manage_income_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Начинает диалог управления доходами."""
+    keyboard = ReplyKeyboardMarkup([
+        ["Основной доход"],
+        ["Дополнительный доход"],
+        ["Просмотреть доходы"],
+        ["Назад"]
+    ], resize_keyboard=True)
+    await update.message.reply_text("Выберите тип дохода:", reply_markup=keyboard)
+    return INCOME_MENU
+
+async def handle_income_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает выбор в меню доходов."""
+    choice = update.message.text
+    if choice == "Основной доход":
+        await update.message.reply_text("Введите размер основной части зарплаты:")
+        return ADD_MAIN_INCOME
+    elif choice == "Дополнительный доход":
+        await update.message.reply_text("Введите размер дополнительного дохода:")
+        return ADD_EXTRA_INCOME
+    elif choice == "Просмотреть доходы":
+        await view_income(update, context)
+        return ConversationHandler.END
+    return ConversationHandler.END
+
+async def add_main_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает размер основной зарплаты."""
+    try:
+        amount = float(update.message.text)
+        context.user_data['temp_income'] = {'main_salary': amount}
+        await update.message.reply_text("Введите день выплаты основной зарплаты (1-31):")
+        return ADD_MAIN_INCOME_DAY
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return ADD_MAIN_INCOME
+
+async def add_main_income_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает день выплаты основной зарплаты."""
+    try:
+        day = int(update.message.text)
+        if 1 <= day <= 31:
+            context.user_data['temp_income']['main_salary_day'] = day
+            await update.message.reply_text("Введите размер аванса (если нет, введите 0):")
+            return ADD_ADVANCE
+        await update.message.reply_text("Введите число от 1 до 31:")
+        return ADD_MAIN_INCOME_DAY
+    except ValueError:
+        await update.message.reply_text("Некорректный день. Введите число от 1 до 31:")
+        return ADD_MAIN_INCOME_DAY
+
+async def add_advance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает размер аванса."""
+    try:
+        amount = float(update.message.text)
+        context.user_data['temp_income']['advance'] = amount
+        if amount > 0:
+            await update.message.reply_text("Введите день выплаты аванса (1-31):")
+            return ADD_ADVANCE_DAY
+        else:
+            await save_income(update, context)
+            return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return ADD_ADVANCE
+
+async def add_advance_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает день выплаты аванса."""
+    try:
+        day = int(update.message.text)
+        if 1 <= day <= 31:
+            context.user_data['temp_income']['advance_day'] = day
+            await save_income(update, context)
+            return ConversationHandler.END
+        await update.message.reply_text("Введите число от 1 до 31:")
+        return ADD_ADVANCE_DAY
+    except ValueError:
+        await update.message.reply_text("Некорректный день. Введите число от 1 до 31:")
+        return ADD_ADVANCE_DAY
+
+async def add_extra_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Получает дополнительный доход."""
+    try:
+        amount = float(update.message.text)
+        user_data = storage.get_user_data(str(update.effective_user.id))
+        if 'income' not in user_data:
+            user_data['income'] = {}
+        user_data['income']['extra'] = amount
+        storage.update_user_data(str(update.effective_user.id), user_data)
+        await update.message.reply_text(f"Дополнительный доход {amount:,.2f} руб. успешно сохранен!")
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return ADD_EXTRA_INCOME
+
+async def save_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Сохраняет данные о доходах."""
+    temp_income = context.user_data.get('temp_income', {})
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    
+    if 'income' not in user_data:
+        user_data['income'] = {}
+    
+    user_data['income'].update({
+        'main_salary': temp_income.get('main_salary', 0),
+        'main_salary_day': temp_income.get('main_salary_day', 1),
+        'advance': temp_income.get('advance', 0),
+        'advance_day': temp_income.get('advance_day', 15) if temp_income.get('advance', 0) > 0 else None
+    })
+    
+    storage.update_user_data(str(update.effective_user.id), user_data)
+    
+    result = (
+        f"✅ Данные о доходах сохранены:\n"
+        f"💰 Основная зарплата: {temp_income.get('main_salary', 0):,.2f} руб. "
+        f"(день: {temp_income.get('main_salary_day', 1)})\n"
+    )
+    
+    if temp_income.get('advance', 0) > 0:
+        result += (
+            f"💵 Аванс: {temp_income.get('advance', 0):,.2f} руб. "
+            f"(день: {temp_income.get('advance_day', 15)})\n"
+        )
+    
+    await update.message.reply_text(result)
+
+async def view_income(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отображает информацию о доходах."""
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    income_data = user_data.get('income', {})
+    
+    if not income_data:
+        await update.message.reply_text("У вас пока не добавлено информации о доходах.")
+        return
+    
+    result = "📊 Информация о доходах:\n\n"
+    
+    if 'main_salary' in income_data:
+        result += (
+            f"💰 Основная зарплата: {income_data['main_salary']:,.2f} руб.\n"
+            f"📅 День выплаты: {income_data['main_salary_day']}\n"
+        )
+    
+    if income_data.get('advance', 0) > 0:
+        result += (
+            f"\n💵 Аванс: {income_data['advance']:,.2f} руб.\n"
+            f"📅 День выплаты: {income_data['advance_day']}\n"
+        )
+    
+    if 'extra' in income_data:
+        result += f"\n✨ Дополнительный доход: {income_data['extra']:,.2f} руб.\n"
+    
+    total = (
+        income_data.get('main_salary', 0) +
+        income_data.get('advance', 0) +
+        income_data.get('extra', 0)
+    )
+    result += f"\n💎 Общий месячный доход: {total:,.2f} руб."
+    
+    await update.message.reply_text(result)

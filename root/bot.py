@@ -165,6 +165,21 @@ def main():
     )
     application.add_handler(regular_expenses_handler)
 
+    # Обработчик управления доходами
+    income_handler = ConversationHandler(
+        entry_points=[MessageHandler(filters.Regex("^Управление доходами$"), manage_income_start)],
+        states={
+            INCOME_MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_income_menu)],
+            ADD_MAIN_INCOME: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_main_income)],
+            ADD_MAIN_INCOME_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_main_income_day)],
+            ADD_ADVANCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_advance)],
+            ADD_ADVANCE_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_advance_day)],
+            ADD_EXTRA_INCOME: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_extra_income)],
+        },
+        fallbacks=[MessageHandler(filters.Regex("^Назад$"), cancel)],
+    )
+    application.add_handler(income_handler)
+
     # Обработчик добавления кредита
     add_credit_handler = ConversationHandler(
         entry_points=[MessageHandler(filters.TEXT & filters.Regex("^Добавить кредит$"), start_add_credit)],
