@@ -485,9 +485,7 @@ async def handle_new_balance(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return ConversationHandler.END
     except ValueError:
         await update.message.reply_text("Некорректная сумма. Пожалуйста, введите положительное число:")
-        return ASK_NEW_BALANCEt(update.message.text)
-        if new_balance < 0:
-            raise ValueError("Отрицательный остаток")
+        return ASK_NEW_BALANCE
 
         user_id = str(update.effective_user.id)
         user_data = storage.get_user_data(user_id)
