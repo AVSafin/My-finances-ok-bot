@@ -627,7 +627,7 @@ async def handle_repayment_amount(update: Update, context: ContextTypes.DEFAULT_
 async def handle_new_payment_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles new payment day input."""
     try:
-        newday = int(update.message.text)
+        new_day = int(update.message.text)
         if new_day < 1 or new_day > 28:
             raise ValueError
         context.user_data['new_payment_day'] = new_day
