@@ -33,6 +33,7 @@ from handlers.credits.actions import (
     CONFIRM_CHANGES,
     ASK_NEW_PAYMENT_AMOUNT,
     ASK_NEW_PAYMENT_DATE,
+    ASK_NEW_AMOUNT,
     ASK_BANK,
     ask_bank,
     ASK_CATEGORY,
