@@ -27,6 +27,7 @@ from handlers.credits.actions import (
     handle_new_amount,
     handle_new_rate,
     handle_new_term,
+    handle_new_balance,
     CHOOSE_CREDIT,
     CHOOSE_ACTION,
     CHOOSE_PARAMETER,

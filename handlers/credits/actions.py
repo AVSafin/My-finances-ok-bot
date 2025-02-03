@@ -459,6 +459,33 @@ async def handle_new_balance(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Handles new loan balance input."""
     try:
         new_balance = float(update.message.text)
+        if new_balance <= 0:
+            raise ValueError("Отрицательный остаток")
+
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        loan = user_data['loans'][credit_index]
+
+        # Update loan balance
+        loan['amount'] = new_balance
+        
+        # Recalculate monthly payment
+        monthly_rate = loan['rate'] / 100 / 12
+        monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
+
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+
+        await update.message.reply_text(
+            f"Остаток по кредиту успешно обновлен!\n"
+            f"Новый остаток: {new_balance:,.2f} руб.\n"
+            f"Новый ежемесячный платеж: {monthly_payment:,.2f} руб."
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите положительное число:")
+        return ASK_NEW_BALANCEt(update.message.text)
         if new_balance < 0:
             raise ValueError("Отрицательный остаток")
 
