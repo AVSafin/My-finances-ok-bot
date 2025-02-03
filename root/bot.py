@@ -260,6 +260,22 @@ def main():
         states={
             CHOOSE_CREDIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_credit_choice)],
             CHOOSE_ACTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_action_choice)],
+            CHOOSE_PARAMETER: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_parameter_choice)],
+            ASK_NEW_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_amount)],
+            ASK_NEW_RATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_rate)],
+            ASK_NEW_TERM: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_term)],
+            ASK_NEW_PAYMENT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_payment_amount)],
+            ASK_NEW_PAYMENT_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_payment_date)],
+            ASK_NEW_BALANCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_balance)],
+            ASK_NEW_PAYMENT_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_payment_day)],
+            ASK_CHANGE_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_change_date)],
+            ASK_REPAYMENT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_repayment_amount)],
+            CONFIRM_CHANGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_confirm_changes)]
+        },
+        fallbacks=[MessageHandler(filters.TEXT & filters.Regex("^Назад$"), handle_back_button)],
+    )
+    application.add_handler(modify_credit_handler)DIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_credit_choice)],
+            CHOOSE_ACTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_action_choice)],
             ASK_NEW_PAYMENT_DAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_payment_day)],
             ASK_CHANGE_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_change_date)],
             ASK_REPAYMENT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_repayment_amount)],
