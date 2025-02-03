@@ -391,6 +391,38 @@ async def handle_new_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректная сумма. Пожалуйста, введите положительное число:")
         return ASK_NEW_AMOUNT
 
+async def handle_new_term(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles new loan term input."""
+    try:
+        new_term = int(update.message.text)
+        if new_term <= 0:
+            raise ValueError("Некорректный срок")
+
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        loan = user_data['loans'][credit_index]
+
+        # Update loan term
+        loan['term'] = new_term
+        
+        # Recalculate monthly payment
+        monthly_rate = loan['rate'] / 100 / 12
+        monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -new_term)
+
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+
+        await update.message.reply_text(
+            f"Срок кредита успешно обновлен!\n"
+            f"Новый срок: {new_term} месяцев\n"
+            f"Новый ежемесячный платеж: {monthly_payment:,.2f} руб."
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректный срок. Пожалуйста, введите положительное целое число:")
+        return ASK_NEW_TERM
+
 async def handle_new_rate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles new interest rate input."""
     try:
