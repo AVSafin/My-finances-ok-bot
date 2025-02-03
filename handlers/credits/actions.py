@@ -288,7 +288,7 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректный формат даты. Пожалуйста, введите дату в формате ГГГГ-ММ-ДД:")
         return ASK_DATE
 # States for credit modification
-CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, CONFIRM_CHANGES = range(6)
+CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, CONFIRM_CHANGES, ASK_NEW_PAYMENT_AMOUNT, ASK_NEW_PAYMENT_DATE = range(8)
 
 async def modify_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts credit modification process."""
