@@ -391,6 +391,38 @@ async def handle_new_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректная сумма. Пожалуйста, введите положительное число:")
         return ASK_NEW_AMOUNT
 
+async def handle_new_rate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles new interest rate input."""
+    try:
+        new_rate = float(update.message.text)
+        if new_rate <= 0:
+            raise ValueError("Отрицательная ставка")
+
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        loan = user_data['loans'][credit_index]
+
+        # Update loan rate
+        loan['rate'] = new_rate
+        
+        # Recalculate monthly payment
+        monthly_rate = new_rate / 100 / 12
+        monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
+
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+
+        await update.message.reply_text(
+            f"Процентная ставка успешно обновлена!\n"
+            f"Новая ставка: {new_rate:.2f}%\n"
+            f"Новый ежемесячный платеж: {monthly_payment:,.2f} руб."
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректная ставка. Пожалуйста, введите положительное число:")
+        return ASK_NEW_RATE
+
 async def handle_new_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles new loan balance input."""
     try:
