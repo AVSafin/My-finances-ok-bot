@@ -290,7 +290,7 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # States for credit modification
 (CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, 
  CONFIRM_CHANGES, CHOOSE_PARAMETER, ASK_NEW_AMOUNT, ASK_NEW_RATE, ASK_NEW_TERM, 
- ASK_NEW_PAYMENT_AMOUNT, ASK_NEW_PAYMENT_DATE) = range(12)
+ ASK_NEW_PAYMENT_AMOUNT, ASK_NEW_PAYMENT_DATE, ASK_NEW_BALANCE) = range(13)
 
 async def modify_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts credit modification process."""
@@ -353,8 +353,43 @@ async def handle_parameter_choice(update: Update, context: ContextTypes.DEFAULT_
     elif choice == "Изменить платёж":
         await update.message.reply_text("Введите новую сумму ежемесячного платежа:")
         return ASK_NEW_PAYMENT_AMOUNT
+    elif choice == "Изменить остаток":
+        await update.message.reply_text("Введите текущий остаток по кредиту:")
+        return ASK_NEW_BALANCE
     else:
         return ConversationHandler.END
+
+async def handle_new_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles new loan balance input."""
+    try:
+        new_balance = float(update.message.text)
+        if new_balance < 0:
+            raise ValueError("Отрицательный остаток")
+
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        loan = user_data['loans'][credit_index]
+
+        # Сохраняем новый остаток
+        loan['amount'] = new_balance
+        
+        # Пересчитываем ежемесячный платеж
+        monthly_rate = loan['rate'] / 100 / 12
+        monthly_payment = (new_balance * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
+
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+
+        await update.message.reply_text(
+            f"Остаток по кредиту успешно обновлен!\n"
+            f"Новый остаток: {new_balance:,.2f} руб.\n"
+            f"Новый ежемесячный платеж: {monthly_payment:,.2f} руб."
+        )
+        return ConversationHandler.END
+    except ValueError as e:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите положительное число:")
+        return ASK_NEW_BALANCE
 
 async def handle_new_payment_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles new payment amount input."""

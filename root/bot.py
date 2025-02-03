@@ -260,6 +260,7 @@ def main():
             ASK_NEW_TERM: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_term)],
             ASK_NEW_PAYMENT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_payment_amount)],
             ASK_NEW_PAYMENT_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_payment_date)],
+            ASK_NEW_BALANCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_balance)],
         },
         fallbacks=[MessageHandler(filters.TEXT & filters.Regex("^Назад$"), handle_back_button)],
     )
