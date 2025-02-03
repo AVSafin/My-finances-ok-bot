@@ -273,6 +273,9 @@ def main():
             CONFIRM_CHANGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_confirm_changes)]
         },
         fallbacks=[MessageHandler(filters.TEXT & filters.Regex("^Назад$"), handle_back_button)],
+        map_to_parent={
+            ConversationHandler.END: ConversationHandler.END
+        }
     )
     application.add_handler(modify_credit_handler)
 

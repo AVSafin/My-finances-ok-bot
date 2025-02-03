@@ -306,26 +306,29 @@ async def modify_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("У вас пока нет добавленных кредитов для изменения.")
         return ConversationHandler.END
 
-    loan_list = "\n".join([f"{i + 1}. {loan['name']}" for i, loan in enumerate(loans)])
-    await update.message.reply_text(f"Выберите номер кредита для изменения:\n\n{loan_list}")
+    # Create buttons for each credit
+    credit_buttons = [[loan['name']] for loan in loans]
+    credit_buttons.append(["Назад"])
+    keyboard = ReplyKeyboardMarkup(credit_buttons, resize_keyboard=True)
+    await update.message.reply_text("Выберите кредит для изменения:", reply_markup=keyboard)
     return CHOOSE_CREDIT
 
 async def handle_credit_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles credit selection and shows modification options."""
-    try:
-        credit_index = int(update.message.text) - 1
-        user_data = storage.get_user_data(str(update.effective_user.id))
-        loans = user_data.get("loans", [])
-        if credit_index < 0 or credit_index >= len(loans):
-            raise ValueError
+    user_data = storage.get_user_data(str(update.effective_user.id))
+    loans = user_data.get("loans", [])
+    selected_name = update.message.text
 
-        context.user_data['selected_credit_index'] = credit_index
-        keyboard = ReplyKeyboardMarkup(CREDIT_PARAMETERS_MENU, resize_keyboard=True)
-        await update.message.reply_text("Выберите действие:", reply_markup=keyboard)
-        return CHOOSE_ACTION
-    except ValueError:
-        await update.message.reply_text("Некорректный номер. Пожалуйста, введите корректный номер кредита.")
-        return CHOOSE_CREDIT
+    # Find the credit by name
+    for index, loan in enumerate(loans):
+        if loan['name'] == selected_name:
+            context.user_data['selected_credit_index'] = index
+            keyboard = ReplyKeyboardMarkup(CREDIT_MODIFICATION_MENU, resize_keyboard=True)
+            await update.message.reply_text("Выберите действие:", reply_markup=keyboard)
+            return CHOOSE_ACTION
+
+    await update.message.reply_text("Кредит не найден. Пожалуйста, выберите кредит из списка.")
+    return CHOOSE_CREDIT
 
 async def handle_action_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles modification action selection."""
@@ -379,7 +382,7 @@ async def handle_new_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Update loan amount
         loan['amount'] = new_amount
-        
+
         # Recalculate monthly payment
         monthly_rate = loan['rate'] / 100 / 12
         monthly_payment = (new_amount * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
@@ -411,7 +414,7 @@ async def handle_new_term(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Update loan term
         loan['term'] = new_term
-        
+
         # Recalculate monthly payment
         monthly_rate = loan['rate'] / 100 / 12
         monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -new_term)
@@ -443,7 +446,7 @@ async def handle_new_rate(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Update loan rate
         loan['rate'] = new_rate
-        
+
         # Recalculate monthly payment
         monthly_rate = new_rate / 100 / 12
         monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
@@ -475,7 +478,7 @@ async def handle_new_balance(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         # Update loan balance
         loan['amount'] = new_balance
-        
+
         # Recalculate monthly payment
         monthly_rate = loan['rate'] / 100 / 12
         monthly_payment = (loan['amount'] * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
@@ -500,7 +503,7 @@ async def handle_new_balance(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         # Сохраняем новый остаток
         loan['amount'] = new_balance
-        
+
         # Пересчитываем ежемесячный платеж
         monthly_rate = loan['rate'] / 100 / 12
         monthly_payment = (new_balance * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
@@ -536,16 +539,16 @@ async def handle_new_payment_date(update: Update, context: ContextTypes.DEFAULT_
         user_id = str(update.effective_user.id)
         user_data = storage.get_user_data(user_id)
         credit_index = context.user_data['selected_credit_index']
-        
+
         # Обновляем параметры кредита с учетом нового платежа
         loan = user_data['loans'][credit_index]
         new_payment = context.user_data['new_payment']
-        
+
         # Пересчитываем параметры кредита
         monthly_rate = loan['rate'] / 100 / 12
         remaining_months = loan['term']
         loan['amount'] = (new_payment * (1 - (1 + monthly_rate) ** -remaining_months)) / monthly_rate
-        
+
         user_data['loans'][credit_index] = loan
         storage.update_user_data(user_id, user_data)
 
@@ -566,28 +569,28 @@ async def handle_new_parameters(update: Update, context: ContextTypes.DEFAULT_TY
         params = update.message.text.split(',')
         if len(params) != 3:
             raise ValueError("Неверное количество параметров")
-            
+
         new_amount = float(params[0])
         new_rate = float(params[1])
         new_term = int(params[2])
-        
+
         if new_amount <= 0 or new_rate <= 0 or new_term <= 0:
             raise ValueError("Параметры должны быть положительными числами")
-            
+
         user_id = str(update.effective_user.id)
         user_data = storage.get_user_data(user_id)
         credit_index = context.user_data['selected_credit_index']
         loan = user_data['loans'][credit_index]
-        
+
         # Обновляем параметры кредита
         loan['amount'] = new_amount
         loan['rate'] = new_rate
         loan['term'] = new_term
-        
+
         # Рассчитываем новый ежемесячный платеж
         monthly_rate = new_rate / 100 / 12
         monthly_payment = (new_amount * monthly_rate) / (1 - (1 + monthly_rate) ** -new_term)
-        
+
         user_data['loans'][credit_index] = loan
         storage.update_user_data(user_id, user_data)
 
@@ -624,7 +627,7 @@ async def handle_repayment_amount(update: Update, context: ContextTypes.DEFAULT_
 async def handle_new_payment_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles new payment day input."""
     try:
-        new_day = int(update.message.text)
+        newday = int(update.message.text)
         if new_day < 1 or new_day > 28:
             raise ValueError
         context.user_data['new_payment_day'] = new_day
