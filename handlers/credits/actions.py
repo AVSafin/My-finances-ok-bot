@@ -288,7 +288,7 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректный формат даты. Пожалуйста, введите дату в формате ГГГГ-ММ-ДД:")
         return ASK_DATE
 # States for credit modification
-CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, CONFIRM_CHANGES, ASK_NEW_PAYMENT_AMOUNT, ASK_NEW_PAYMENT_DATE = range(8)
+CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, CONFIRM_CHANGES, ASK_NEW_PAYMENT_AMOUNT, ASK_NEW_PAYMENT_DATE, ASK_NEW_PARAMETERS = range(9)
 
 async def modify_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts credit modification process."""
@@ -329,8 +329,106 @@ async def handle_action_choice(update: Update, context: ContextTypes.DEFAULT_TYP
     elif action == "Изменение даты платежа":
         await update.message.reply_text("Введите новый день платежа (число от 1 до 28):")
         return ASK_NEW_PAYMENT_DAY
+    elif action == "Изменение платежа":
+        await update.message.reply_text("Введите новую сумму ежемесячного платежа:")
+        return ASK_NEW_PAYMENT_AMOUNT
+    elif action == "Изменение параметров":
+        await update.message.reply_text(
+            "Введите новые параметры кредита в формате:\n"
+            "Сумма,Ставка,Срок\n"
+            "Например: 1000000,7.5,120"
+        )
+        return ASK_NEW_PARAMETERS
     else:
         return ConversationHandler.END
+
+async def handle_new_payment_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles new payment amount input."""
+    try:
+        new_payment = float(update.message.text)
+        context.user_data['new_payment'] = new_payment
+        await update.message.reply_text("Введите дату, с которой будет действовать новый платеж (ГГГГ-ММ-ДД):")
+        return ASK_NEW_PAYMENT_DATE
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите число:")
+        return ASK_NEW_PAYMENT_AMOUNT
+
+async def handle_new_payment_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the date from which the new payment will be effective."""
+    try:
+        new_date = datetime.datetime.strptime(update.message.text, "%Y-%m-%d").date()
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        
+        # Обновляем параметры кредита с учетом нового платежа
+        loan = user_data['loans'][credit_index]
+        new_payment = context.user_data['new_payment']
+        
+        # Пересчитываем параметры кредита
+        monthly_rate = loan['rate'] / 100 / 12
+        remaining_months = loan['term']
+        loan['amount'] = (new_payment * (1 - (1 + monthly_rate) ** -remaining_months)) / monthly_rate
+        
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+
+        await update.message.reply_text(
+            f"Платеж успешно изменен!\n"
+            f"Новый платеж: {new_payment:,.2f} руб.\n"
+            f"Действует с: {new_date.strftime('%Y-%m-%d')}\n"
+            f"Пересчитанная сумма кредита: {loan['amount']:,.2f} руб."
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректный формат даты. Используйте формат ГГГГ-ММ-ДД:")
+        return ASK_NEW_PAYMENT_DATE
+
+async def handle_new_parameters(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles new credit parameters input."""
+    try:
+        params = update.message.text.split(',')
+        if len(params) != 3:
+            raise ValueError("Неверное количество параметров")
+            
+        new_amount = float(params[0])
+        new_rate = float(params[1])
+        new_term = int(params[2])
+        
+        if new_amount <= 0 or new_rate <= 0 or new_term <= 0:
+            raise ValueError("Параметры должны быть положительными числами")
+            
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        loan = user_data['loans'][credit_index]
+        
+        # Обновляем параметры кредита
+        loan['amount'] = new_amount
+        loan['rate'] = new_rate
+        loan['term'] = new_term
+        
+        # Рассчитываем новый ежемесячный платеж
+        monthly_rate = new_rate / 100 / 12
+        monthly_payment = (new_amount * monthly_rate) / (1 - (1 + monthly_rate) ** -new_term)
+        
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+
+        await update.message.reply_text(
+            f"Параметры кредита успешно обновлены!\n"
+            f"Сумма: {new_amount:,.2f} руб.\n"
+            f"Ставка: {new_rate}%\n"
+            f"Срок: {new_term} месяцев\n"
+            f"Новый ежемесячный платеж: {monthly_payment:,.2f} руб."
+        )
+        return ConversationHandler.END
+    except ValueError as e:
+        await update.message.reply_text(
+            "Ошибка ввода. Убедитесь, что вы ввели три числа через запятую:\n"
+            "Сумма,Ставка,Срок"
+        )
+        return ASK_NEW_PARAMETERS
 
 async def handle_repayment_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles early repayment amount input."""
