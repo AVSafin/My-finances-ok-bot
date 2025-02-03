@@ -24,6 +24,7 @@ from handlers.credits.actions import (
     handle_new_payment_amount,
     handle_new_payment_date,
     handle_parameter_choice,
+    handle_new_amount, # Added import
     CHOOSE_CREDIT,
     CHOOSE_ACTION,
     CHOOSE_PARAMETER,
@@ -178,7 +179,7 @@ def main():
         filters.TEXT & filters.Regex("^Свод$"),
         get_summary
     ))
-    
+
     # Обработчик управления доходами
     income_handler = ConversationHandler(
         entry_points=[MessageHandler(filters.Regex("^Управление доходами$"), manage_income_start)],
