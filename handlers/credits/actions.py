@@ -582,10 +582,18 @@ async def handle_new_parameters(update: Update, context: ContextTypes.DEFAULT_TY
         credit_index = context.user_data['selected_credit_index']
         loan = user_data['loans'][credit_index]
 
-        # Обновляем параметры кредита
+        # Сначала рассчитываем новый платеж
+        monthly_rate = new_rate / 100 / 12
+        monthly_payment = (new_amount * monthly_rate) / (1 - (1 + monthly_rate) ** -new_term)
+        
+        # Рассчитываем общую сумму выплат
+        total_payment = monthly_payment * new_term
+        
+        # Обновляем параметры кредита с учетом остатка процентов
         loan['amount'] = new_amount
         loan['rate'] = new_rate
         loan['term'] = new_term
+        loan['total_interest'] = total_payment - new_amount  # Сохраняем общую сумму процентов
 
         # Рассчитываем новый ежемесячный платеж
         monthly_rate = new_rate / 100 / 12
