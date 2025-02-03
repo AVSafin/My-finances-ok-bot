@@ -25,6 +25,7 @@ from handlers.credits.actions import (
     handle_new_payment_date,
     CHOOSE_CREDIT,
     CHOOSE_ACTION,
+    CHOOSE_PARAMETER,
     ASK_NEW_PAYMENT_DAY,
     ASK_CHANGE_DATE,
     ASK_REPAYMENT_AMOUNT,
