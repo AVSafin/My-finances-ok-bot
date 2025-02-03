@@ -359,6 +359,38 @@ async def handle_parameter_choice(update: Update, context: ContextTypes.DEFAULT_
     else:
         return ConversationHandler.END
 
+async def handle_new_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles new loan amount input."""
+    try:
+        new_amount = float(update.message.text)
+        if new_amount <= 0:
+            raise ValueError("Отрицательная сумма")
+
+        user_id = str(update.effective_user.id)
+        user_data = storage.get_user_data(user_id)
+        credit_index = context.user_data['selected_credit_index']
+        loan = user_data['loans'][credit_index]
+
+        # Update loan amount
+        loan['amount'] = new_amount
+        
+        # Recalculate monthly payment
+        monthly_rate = loan['rate'] / 100 / 12
+        monthly_payment = (new_amount * monthly_rate) / (1 - (1 + monthly_rate) ** -loan['term'])
+
+        user_data['loans'][credit_index] = loan
+        storage.update_user_data(user_id, user_data)
+
+        await update.message.reply_text(
+            f"Сумма кредита успешно обновлена!\n"
+            f"Новая сумма: {new_amount:,.2f} руб.\n"
+            f"Новый ежемесячный платеж: {monthly_payment:,.2f} руб."
+        )
+        return ConversationHandler.END
+    except ValueError:
+        await update.message.reply_text("Некорректная сумма. Пожалуйста, введите положительное число:")
+        return ASK_NEW_AMOUNT
+
 async def handle_new_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles new loan balance input."""
     try:
