@@ -288,7 +288,9 @@ async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректный формат даты. Пожалуйста, введите дату в формате ГГГГ-ММ-ДД:")
         return ASK_DATE
 # States for credit modification
-CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, CONFIRM_CHANGES, ASK_NEW_PAYMENT_AMOUNT, ASK_NEW_PAYMENT_DATE, ASK_NEW_PARAMETERS = range(9)
+(CHOOSE_CREDIT, CHOOSE_ACTION, ASK_NEW_PAYMENT_DAY, ASK_CHANGE_DATE, ASK_REPAYMENT_AMOUNT, 
+ CONFIRM_CHANGES, CHOOSE_PARAMETER, ASK_NEW_AMOUNT, ASK_NEW_RATE, ASK_NEW_TERM, 
+ ASK_NEW_PAYMENT_AMOUNT, ASK_NEW_PAYMENT_DATE) = range(12)
 
 async def modify_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Starts credit modification process."""
@@ -329,16 +331,28 @@ async def handle_action_choice(update: Update, context: ContextTypes.DEFAULT_TYP
     elif action == "Изменение даты платежа":
         await update.message.reply_text("Введите новый день платежа (число от 1 до 28):")
         return ASK_NEW_PAYMENT_DAY
-    elif action == "Изменение платежа":
+    elif action == "Изменение параметров":
+        keyboard = ReplyKeyboardMarkup(CREDIT_PARAMETERS_MENU, resize_keyboard=True)
+        await update.message.reply_text("Выберите параметр для изменения:", reply_markup=keyboard)
+        return CHOOSE_PARAMETER
+    else:
+        return ConversationHandler.END
+
+async def handle_parameter_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles parameter choice for modification."""
+    choice = update.message.text
+    if choice == "Изменить сумму":
+        await update.message.reply_text("Введите новую сумму кредита:")
+        return ASK_NEW_AMOUNT
+    elif choice == "Изменить ставку":
+        await update.message.reply_text("Введите новую процентную ставку:")
+        return ASK_NEW_RATE
+    elif choice == "Изменить срок":
+        await update.message.reply_text("Введите новый срок кредита в месяцах:")
+        return ASK_NEW_TERM
+    elif choice == "Изменить платёж":
         await update.message.reply_text("Введите новую сумму ежемесячного платежа:")
         return ASK_NEW_PAYMENT_AMOUNT
-    elif action == "Изменение параметров":
-        await update.message.reply_text(
-            "Введите новые параметры кредита в формате:\n"
-            "Сумма,Ставка,Срок\n"
-            "Например: 1000000,7.5,120"
-        )
-        return ASK_NEW_PARAMETERS
     else:
         return ConversationHandler.END
 
