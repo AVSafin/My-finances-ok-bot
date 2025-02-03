@@ -5,7 +5,13 @@ storage = Storage()
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters
 import datetime
 import logging
-from constants import BANKS, CATEGORIES, CREDIT_MODIFICATION_MENU, CREDIT_REPAYMENT_MENU
+from constants import (
+    BANKS, 
+    CATEGORIES, 
+    CREDIT_MODIFICATION_MENU,
+    CREDIT_PARAMETERS_MENU,
+    CREDIT_REPAYMENT_MENU
+)
 
 # Этапы диалога для кредитов
 ASK_BANK, ASK_CATEGORY, ASK_AMOUNT, ASK_RATE, ASK_TERM, ASK_DAY, ASK_DATE = range(7)
@@ -314,7 +320,7 @@ async def handle_credit_choice(update: Update, context: ContextTypes.DEFAULT_TYP
             raise ValueError
 
         context.user_data['selected_credit_index'] = credit_index
-        keyboard = ReplyKeyboardMarkup(CREDIT_MODIFICATION_MENU, resize_keyboard=True)
+        keyboard = ReplyKeyboardMarkup(CREDIT_PARAMETERS_MENU, resize_keyboard=True)
         await update.message.reply_text("Выберите действие:", reply_markup=keyboard)
         return CHOOSE_ACTION
     except ValueError:
