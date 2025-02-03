@@ -23,6 +23,7 @@ from handlers.credits.actions import (
     handle_confirm_changes,
     handle_new_payment_amount,
     handle_new_payment_date,
+    handle_parameter_choice,
     CHOOSE_CREDIT,
     CHOOSE_ACTION,
     CHOOSE_PARAMETER,
