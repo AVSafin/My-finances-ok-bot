@@ -2,6 +2,7 @@ import sqlite3
 import json
 from typing import Dict, Any
 import datetime
+import logging
 
 class Storage:
     def __init__(self):
@@ -57,7 +58,7 @@ class Storage:
     def update_user_data(self, user_id: str, data: dict):
         """Update data for specific user"""
         def date_handler(obj):
-            if isinstance(obj, datetime.date):
+            if isinstance(obj, (datetime.date, datetime.datetime)):
                 return obj.isoformat()
             return obj
 
