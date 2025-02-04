@@ -5,8 +5,6 @@ from handlers.forecast.actions import (
     daily_balance_handler,
 )
 
-import sqlite3
-
 from storage import Storage
 
 # Initialize storage
