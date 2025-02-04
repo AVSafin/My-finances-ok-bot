@@ -6,8 +6,16 @@ import logging
 
 class Storage:
     def __init__(self):
-        database_url = os.environ['DATABASE_URL']
-        self.conn = psycopg2.connect(database_url)
+        try:
+            database_url = os.environ['DATABASE_URL']
+            self.conn = psycopg2.connect(database_url)
+            self.is_postgres = True
+        except (KeyError, psycopg2.Error) as e:
+            logging.warning("PostgreSQL connection failed, falling back to SQLite")
+            import sqlite3
+            self.conn = sqlite3.connect('finance_bot.db')
+            self.is_postgres = False
+        
         self._init_db()
         self._add_default_credits()
 
